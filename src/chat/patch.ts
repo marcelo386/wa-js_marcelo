@@ -21,9 +21,13 @@ import {
   createChat,
   createChatRecord,
   findChat,
+  getEnforceCurrentLid,
   getExisting,
+  isLidMigrated,
   isUnreadTypeMsg,
   mediaTypeFromProtobuf,
+  shouldHaveAccountLid,
+  toUserLid,
   typeAttributeFromProtobuf,
 } from '../whatsapp/functions';
 
@@ -106,6 +110,11 @@ function applyPatch() {
 
   wrapModuleFunction(findChat, async (func, ...args) => {
     const [chatId] = args;
+
+    if (!chatId.isLid()) {
+      return await func(...args);
+    }
+
     const contact = ContactStore.get(chatId);
     const existingChat = await getExisting(chatId);
     if (!existingChat && contact) {
@@ -123,6 +132,21 @@ function applyPatch() {
     }
     return await func(...args);
   });
+
+  wrapModuleFunction(getEnforceCurrentLid, (_func, ...args) => {
+    const [UserWid] = args;
+
+    try {
+      const LID = toUserLid ? toUserLid(UserWid) : null;
+      return LID || UserWid;
+    } catch {
+      return UserWid;
+    }
+  });
+
+  wrapModuleFunction(shouldHaveAccountLid, () => false);
+
+  wrapModuleFunction(isLidMigrated, () => false);
 }
 
 function applyPatchModel() {

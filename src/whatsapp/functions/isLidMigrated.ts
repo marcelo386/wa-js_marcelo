@@ -1,5 +1,5 @@
 /*!
- * Copyright 2021 WPPConnect Team
+ * Copyright 2024 WPPConnect Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-import { ChatModel } from '..';
 import { exportModule } from '../exportModule';
 
-/** @whatsapp 83802
- * @whatsapp 483802 >= 2.2222.8
- * @whatsapp 382019 >= 2.2228.4
+/**
+ * @whatsapp WAWebLidMigrationUtils >= 2.3000.x
  */
-export declare function sendClear(
-  chat: ChatModel,
-  keepStarred?: boolean
-): Promise<void>;
+export declare function isLidMigrated(): boolean;
 
 exportModule(
   exports,
   {
-    sendClear: 'sendClear',
+    isLidMigrated: ['Lid1X1MigrationUtils.isLidMigrated'],
   },
-  (m) => m.sendClear && m.sendClear?.toString()?.includes('WAWebStateUtils')
+  (m) =>
+    m.Lid1X1MigrationUtils &&
+    typeof m.Lid1X1MigrationUtils.isLidMigrated === 'function'
 );
