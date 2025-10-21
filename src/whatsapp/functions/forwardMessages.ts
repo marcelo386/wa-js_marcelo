@@ -1,5 +1,5 @@
 /*!
- * Copyright 2024 WPPConnect Team
+ * Copyright 2021 WPPConnect Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,24 @@
  */
 
 import { exportModule } from '../exportModule';
+import { ChatModel, MsgModel } from '../models';
 
-/**
- * @whatsapp WAWebLidMigrationUtils >= 2.3000.x
- */
-export declare function isLidMigrated(): boolean | (() => any);
+export type ForwardMessagesParams = {
+  chat: ChatModel;
+  msgs: MsgModel[];
+  multicast: boolean;
+  includeCaption: boolean;
+  appendedText: boolean;
+};
+
+export declare function forwardMessages(
+  params: ForwardMessagesParams
+): Promise<Array<any>>;
 
 exportModule(
   exports,
   {
-    isLidMigrated: ['Lid1X1MigrationUtils.isLidMigrated'],
+    forwardMessages: 'forwardMessages',
   },
-  (m) =>
-    m.Lid1X1MigrationUtils &&
-    typeof m.Lid1X1MigrationUtils.isLidMigrated === 'function'
+  (m, moduleId) => moduleId === 'WAWebChatForwardMessage'
 );

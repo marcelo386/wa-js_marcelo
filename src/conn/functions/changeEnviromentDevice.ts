@@ -1,5 +1,5 @@
 /*!
- * Copyright 2024 WPPConnect Team
+ * Copyright 2021 WPPConnect Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-import { exportModule } from '../exportModule';
+import { Enviroment } from '../../whatsapp';
 
 /**
- * @whatsapp WAWebLidMigrationUtils >= 2.3000.x
+ * Change the current environment device between Web and Windows.
  */
-export declare function isLidMigrated(): boolean | (() => any);
-
-exportModule(
-  exports,
-  {
-    isLidMigrated: ['Lid1X1MigrationUtils.isLidMigrated'],
-  },
-  (m) =>
-    m.Lid1X1MigrationUtils &&
-    typeof m.Lid1X1MigrationUtils.isLidMigrated === 'function'
-);
+export function changeEnviromentDevice() {
+  Enviroment.default.isWeb = !Enviroment.default.isWeb;
+  Enviroment.default.isWindows = !Enviroment.default.isWindows;
+}

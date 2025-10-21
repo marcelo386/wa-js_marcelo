@@ -1,5 +1,5 @@
 /*!
- * Copyright 2024 WPPConnect Team
+ * Copyright 2021 WPPConnect Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,18 @@
 
 import { exportModule } from '../exportModule';
 
-/**
- * @whatsapp WAWebLidMigrationUtils >= 2.3000.x
- */
-export declare function isLidMigrated(): boolean | (() => any);
+export declare const Enviroment: {
+  default: {
+    isWeb: boolean;
+    isWindows: boolean;
+    isGuest: boolean;
+  };
+};
 
 exportModule(
   exports,
-  {
-    isLidMigrated: ['Lid1X1MigrationUtils.isLidMigrated'],
-  },
+  'Enviroment',
   (m) =>
-    m.Lid1X1MigrationUtils &&
-    typeof m.Lid1X1MigrationUtils.isLidMigrated === 'function'
+    (m.default.isWeb !== undefined && m.default.isWindows !== undefined) ||
+    (m.isWeb !== undefined && m.isWindows !== undefined)
 );
