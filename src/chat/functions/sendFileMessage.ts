@@ -16,15 +16,20 @@
 
 import Debug from 'debug';
 
-import { assertFindChat, assertGetChat } from '../../assert';
+import { assertFindChat } from '../../assert';
 import {
   blobToArrayBuffer,
+  convertToFile,
   createWid,
   getVideoInfoFromBuffer,
   WPPError,
 } from '../../util';
-import { convertToFile } from '../../util/convertToFile';
+import {
+  formatFileSize,
+  getMediaTypeForValidation,
+} from '../../util/fileHelpers';
 import * as webpack from '../../webpack';
+import * as whatsapp from '../../whatsapp';
 import {
   ChatModel,
   MediaPrep,
@@ -273,18 +278,51 @@ export async function sendFileMessage(
     ...options,
   };
 
-  let chat = options.createChat
-    ? await assertFindChat(chatId)
-    : assertGetChat(chatId);
+  let chat: ChatModel;
   if (chatId?.toString() == 'status@broadcast') {
     chat = new ChatModel({
       id: createWid(STATUS_JID),
     });
+  } else {
+    chat = await assertFindChat(chatId);
   }
 
   const file = await convertToFile(content, options.mimetype, options.filename);
 
   const filename = file.name;
+
+  // Determine media type for file size validation
+  const mediaType = getMediaTypeForValidation(options.type, file.type);
+  const isStatusMedia = chatId?.toString() === 'status@broadcast';
+
+  // Validate file size before processing
+  try {
+    const isStatusOrigin = isStatusMedia
+      ? 'STATUS_TAB_CAMERA_PHOTO_LIBRARY'
+      : null;
+
+    const limit = whatsapp.MediaGatingUtils.getUploadLimit(
+      mediaType,
+      isStatusOrigin
+    );
+
+    debug(
+      `Validating file size: ${file.size} bytes, limit for ${mediaType}: ${limit} bytes`
+    );
+
+    if (file.size > limit) {
+      throw new WPPError(
+        'file_too_large',
+        `File size ${formatFileSize(file.size)} exceeds the upload limit of ${formatFileSize(limit)} for ${mediaType} files`,
+        { fileSize: file.size, limit, mediaType }
+      );
+    }
+  } catch (error) {
+    // If it's already our WPPError, re-throw it
+    if (error instanceof WPPError) {
+      throw error;
+    }
+  }
 
   const opaqueData = await OpaqueData.createFromData(file, file.type);
 
@@ -411,7 +449,7 @@ export async function sendFileMessage(
       const sendResult = await sendMsgResult;
 
       debug(
-        `ack received for ${message.id} (ACK: ${message.ack}, SendResult: ${sendResult})`
+        `ack received for ${message.id} (ACK: ${message.ack}, SendResult: ${JSON.stringify(sendResult)})`
       );
     }
 
