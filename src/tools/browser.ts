@@ -43,6 +43,7 @@ export async function preparePage(page: playwright.Page) {
     /^https:\/\/(web\.whatsapp\.com|static\.whatsapp\.net)\//,
     async (route, request) => {
       if (request.url() === URL) {
+        console.log('📄 Serving HTML from wa-version package:', WA_VERSION);
         return route.fulfill({
           status: 200,
           contentType: 'text/html',
@@ -61,7 +62,12 @@ export async function preparePage(page: playwright.Page) {
         fileName
       );
 
-      if (request.url().includes('dist') && fs.existsSync(filePathDist)) {
+      if (
+        request.url().includes('dist') &&
+        fs.existsSync(filePathDist) &&
+        fs.statSync(filePathDist).isFile()
+      ) {
+        console.log('📦 Serving from dist/:', fileName);
         return route.fulfill({
           status: 200,
           contentType: 'text/javascript; charset=UTF-8',
@@ -71,7 +77,11 @@ export async function preparePage(page: playwright.Page) {
 
       const filePathSource = path.join(WA_DIR, fileName);
 
-      if (fs.existsSync(filePathSource)) {
+      if (
+        fs.existsSync(filePathSource) &&
+        fs.statSync(filePathSource).isFile()
+      ) {
+        console.log('💾 Serving from wa-source/:', fileName);
         return route.fulfill({
           status: 200,
           contentType: 'text/javascript; charset=UTF-8',
@@ -87,7 +97,14 @@ export async function preparePage(page: playwright.Page) {
 
       const filePathSourceHash = path.join(WA_DIR, `${hash}-${fileName}`);
 
-      if (fs.existsSync(filePathSourceHash)) {
+      if (
+        fs.existsSync(filePathSourceHash) &&
+        fs.statSync(filePathSourceHash).isFile()
+      ) {
+        console.log(
+          '💾 Serving from wa-source/ (hashed):',
+          `${hash}-${fileName}`
+        );
         return route.fulfill({
           status: 200,
           contentType: 'text/javascript; charset=UTF-8',
@@ -100,6 +117,7 @@ export async function preparePage(page: playwright.Page) {
           fs.mkdirSync(WA_DIR);
         }
 
+        console.log('🌐 Downloading from remote and caching:', fileName);
         const response = await route.fetch();
         const body = await response.body();
         fs.writeFileSync(filePathSourceHash, body);
@@ -121,9 +139,7 @@ export async function preparePage(page: playwright.Page) {
       .catch(() => null);
 
     // Disable service worker registration
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // @ts-expect-error(eslint-migration) -- Ignore
     navigator.serviceWorker.register = new Promise(() => {});
 
     setInterval(() => {

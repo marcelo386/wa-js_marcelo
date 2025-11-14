@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-import { exportModule } from '../exportModule';
+import { SendMsgResult } from './enums';
 
-/**
- * @whatsapp WAWebCreateChat >= 2.3000.0
- * findChat internally uses this function to create a new chat
- * to create a chat use Chat.findChat(wid) instead
- */
-export declare function createChat(
-  chatParams: any,
-  context: any,
-  options: any,
-  extra: any
-): Promise<any>;
-
-exportModule(
-  exports,
-  {
-    createChat: 'createChat',
-  },
-  (m) => m.createChat
-);
+export interface SendMsgResultObject {
+  messageSendResult: SendMsgResult;
+  t?: number;
+  count?: number | null;
+}

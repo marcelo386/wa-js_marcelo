@@ -17,21 +17,22 @@
 import { exportModule } from '../exportModule';
 
 /**
- * @whatsapp WAWebCreateChat >= 2.3000.0
- * findChat internally uses this function to create a new chat
- * to create a chat use Chat.findChat(wid) instead
+ * Get phone language preference
+ * @whatsapp WAWebUserPrefsLocales
  */
-export declare function createChat(
-  chatParams: any,
-  context: any,
-  options: any,
-  extra: any
-): Promise<any>;
+export declare function getPhoneLangPref(): string | null;
+
+/**
+ * Set phone language preference
+ * @whatsapp WAWebUserPrefsLocales
+ */
+export declare function setPhoneLangPref(locale: string): void;
 
 exportModule(
   exports,
   {
-    createChat: 'createChat',
+    getPhoneLangPref: 'getPhoneLangPref',
+    setPhoneLangPref: 'setPhoneLangPref',
   },
-  (m) => m.createChat
+  (m) => m.getPhoneLangPref && m.setPhoneLangPref
 );

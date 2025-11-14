@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-import { ModelPropertiesContructor, MsgKey, MsgModel, Wid } from '../whatsapp';
-import { SendMsgResult } from '../whatsapp/enums';
+import {
+  ModelPropertiesContructor,
+  MsgKey,
+  MsgModel,
+  SendMsgResultObject,
+  Wid,
+} from '../whatsapp';
+
+export type { SendMsgResultObject };
 
 export interface SendMessageOptions {
   /**
    * Create a new chat to a new contact
    *
+   * @deprecated This option is no longer used. Chats are automatically created when sending messages.
    * @default false
    *
    * @example
@@ -131,7 +139,7 @@ export interface SendMessageReturn {
   to?: string;
   latestEditMsgKey?: MsgKey;
   ack: number;
-  sendMsgResult: Promise<SendMsgResult>;
+  sendMsgResult: Promise<SendMsgResultObject>;
 }
 
 export type RawMessage = ModelPropertiesContructor<MsgModel>;

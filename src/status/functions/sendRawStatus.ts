@@ -62,7 +62,6 @@ export async function sendRawStatus(
 
   const result = await Chat.sendRawMessage('status@broadcast', message, {
     ...options,
-    createChat: true,
   });
 
   postSendStatus(result);
@@ -110,7 +109,7 @@ webpack.onInjected(() => {
           count: null,
           error: null,
         };
-      } catch (error) {
+      } catch (_error) {
         return null;
       }
     }

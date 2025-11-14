@@ -72,7 +72,7 @@ async function start() {
         let module: any;
         try {
           module = submodules[name];
-        } catch (error) {}
+        } catch (_error) {}
 
         const resultName = dir ? `${dir}.${name}` : name;
 
@@ -86,6 +86,9 @@ async function start() {
   const version = await page
     .evaluate(() => (window as any).Debug.VERSION)
     .catch(() => null);
+
+  // if any pending request is hanging we unroute them to avoid errors, before browser close
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
 
   await browser.close();
 
