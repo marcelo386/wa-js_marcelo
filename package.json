@@ -1,12 +1,16 @@
 {
   "name": "@wppconnect/wa-js",
-  "version": "3.19.3",
+  "version": "3.19.4",
   "description": "WPPConnect/WA-JS is an open-source project with the aim of exporting functions from WhatsApp Web",
   "license": "Apache-2.0",
   "author": {
     "name": "Edgard Messias",
     "email": "edgardmessias@gmail.com",
     "url": "https://github.com/edgardmessias"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wppconnect-team/wa-js"
   },
   "exports": {
     ".": {
@@ -40,9 +44,9 @@
     "watch": "webpack watch --devtool inline-source-map --mode development"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.2.0",
-    "@commitlint/config-conventional": "^20.2.0",
-    "@commitlint/prompt-cli": "^20.2.0",
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "@commitlint/prompt-cli": "^20.3.1",
     "@playwright/test": "^1.57.0",
     "@tony.ganchev/eslint-plugin-header": "^3.1.11",
     "@types/debug": "^4.1.12",
@@ -50,16 +54,16 @@
     "@types/node-fetch": "^2.6.13",
     "@types/parse-data-url": "^3.0.2",
     "@types/shelljs": "^0.10.0",
-    "@typescript-eslint/eslint-plugin": "^8.49.0",
-    "@typescript-eslint/parser": "^8.49.0",
-    "@wppconnect/wa-version": "^1.5.2811",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
+    "@wppconnect/wa-version": "^1.5.3006",
     "buffer": "^6.0.3",
     "compare-versions": "^6.1.1",
     "compressorjs": "^1.2.1",
     "conventional-changelog-angular": "^8.1.0",
     "conventional-changelog-cli": "^5.0.0",
     "debug": "^4.4.3",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
@@ -72,7 +76,7 @@
     "parse-data-url": "^6.0.0",
     "playwright-chromium": "^1.57.0",
     "prettier": "^3.7.4",
-    "release-it": "^19.1.0",
+    "release-it": "^19.2.3",
     "shx": "^0.4.0",
     "terser-webpack-plugin": "^5.3.16",
     "ts-loader": "^9.5.4",
@@ -83,8 +87,8 @@
     "typedoc-plugin-missing-exports": "^4.1.2",
     "typescript": "^5.9.3",
     "typescript-debounce-decorator": "^0.0.18",
-    "typescript-eslint": "^8.49.0",
-    "webpack": "^5.103.0",
+    "typescript-eslint": "^8.52.0",
+    "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1"
   },
   "engines": {
