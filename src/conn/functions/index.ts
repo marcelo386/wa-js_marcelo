@@ -23,6 +23,7 @@ export {
   getABPropsMap,
 } from './getABProps';
 export { getAuthCode } from './getAuthCode';
+export { getAutoDownloadSettings } from './getAutoDownloadSettings';
 export {
   BuildConstants,
   getBuildConstants,
@@ -35,7 +36,10 @@ export {
 export { getMigrationState, MigrationState } from './getMigrationState';
 export { getMyDeviceId } from './getMyDeviceId';
 export { getMyUserId } from './getMyUserId';
+export { getMyUserLid } from './getMyUserLid';
+export { getMyUserWid } from './getMyUserWid';
 export { getPlatform } from './getPlatform';
+export { getTheme, Theme } from './getTheme';
 export { isAuthenticated } from './isAuthenticated';
 export { isIdle } from './isIdle';
 export { isMainInit } from './isMainInit';
@@ -49,6 +53,11 @@ export { logout } from './logout';
 export { markAvailable, markUnavailable } from './markAvailable';
 export { needsUpdate } from './needsUpdate';
 export { refreshQR } from './refreshQR';
+export {
+  AutoDownloadSettings,
+  setAutoDownloadSettings,
+} from './setAutoDownloadSettings';
 export { setKeepAlive } from './setKeepAlive';
 export { setLimit } from './setLimit';
 export { setMultiDevice } from './setMultiDevice';
+export { setTheme } from './setTheme';
