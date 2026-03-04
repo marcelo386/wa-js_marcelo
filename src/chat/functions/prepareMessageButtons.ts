@@ -32,47 +32,123 @@ import {
   typeAttributeFromProtobuf,
 } from '../../whatsapp/functions';
 import { RawMessage } from '..';
-import { encryptAndParserMsgButtons } from './buttonsParser';
+
+type MessageButtonsTypesBase = {
+  text: string;
+};
 
 export type MessageButtonsTypes =
-  | {
-      id: string;
-      text: string;
-    }
-  | {
-      phoneNumber: string;
-      text: string;
-    }
-  | {
-      url: string;
-      text: string;
-    }
-  | {
-      code: string;
-      text: string;
-    };
+  | (MessageButtonsTypesBase & { id: string })
+  | (MessageButtonsTypesBase & { phoneNumber: string })
+  | (MessageButtonsTypesBase & { url: string })
+  | (MessageButtonsTypesBase & { code: string })
+  | (MessageButtonsTypesBase & { raw: any });
 
 export interface MessageButtonsOptions {
-  /**
-   * List of buttons, with at least 1 option and a maximum of 3
-   */
   buttons?: Array<MessageButtonsTypes>;
-  /**
-   * Title for buttons, only for text message
-   */
   title?: string;
-  /**
-   * Footer text for buttons
-   */
   footer?: string;
 }
 
-/**
- * Prepare a message for buttons
- *
- * @category Message
- * @internal
- */
+const DEBUG_NAMESPACE = '[prepareMessageButtons]';
+
+const log = (...args: any[]) => {
+  if (typeof window !== 'undefined' && (window as any).__WPP_DEBUG__) {
+    console.info(DEBUG_NAMESPACE, ...args);
+  } else {
+    console.debug?.(DEBUG_NAMESPACE, ...args);
+  }
+};
+
+const warn = (...args: any[]) => console.warn(DEBUG_NAMESPACE, ...args);
+
+const shouldForceViewOnceFallback = () => {
+  try {
+    if (typeof window === 'undefined') return false;
+    const w = window as any;
+    if (w?.WPP?.config?.interactiveButtons?.forceViewOnce === true) {
+      return true;
+    }
+    const storageValue = window.localStorage?.getItem(
+      'wpp:interactive:fallback'
+    );
+    return storageValue === 'viewonce';
+  } catch (err) {
+    log('fallback detection failed', err);
+  }
+  return false;
+};
+
+const shouldAutoFallback = () => {
+  try {
+    const ConnStore = webpack.search((m) => m?.Conn)?.Conn;
+    const features = ConnStore?.features || ConnStore?.default?.features;
+    if (!features) {
+      return false;
+    }
+    if ('isNativeFlowSupported' in features) {
+      return !(features as any).isNativeFlowSupported;
+    }
+    if ('previewMessageButtons' in features) {
+      return !(features as any).previewMessageButtons;
+    }
+  } catch (err) {
+    log('auto fallback detection error', err);
+  }
+  return false;
+};
+
+const wrapWithViewOnce = (proto: any) => ({
+  viewOnceMessage: {
+    message: proto,
+  },
+});
+
+const patchMessageForMdIfRequired = (proto: any) => {
+  if (
+    proto?.documentWithCaptionMessage?.message ||
+    proto?.buttonsMessage ||
+    proto?.listMessage ||
+    proto?.interactiveMessage
+  ) {
+    return {
+      documentWithCaptionMessage: {
+        message: proto.documentWithCaptionMessage?.message || proto,
+      },
+    };
+  }
+  return proto;
+};
+
+const buildNativeFlowBizNode = (proto?: any): websocket.WapNode | null => {
+  if (!proto) {
+    return null;
+  }
+
+  const interactive =
+    proto.interactiveMessage ||
+    proto?.documentWithCaptionMessage?.message?.interactiveMessage ||
+    proto?.viewOnceMessage?.message?.interactiveMessage;
+
+  const buttons = interactive?.nativeFlowMessage?.buttons;
+  if (!buttons?.length) {
+    return null;
+  }
+
+  const hasPaymentButton = buttons.some(
+    (button: any) => button.name === 'payment_info'
+  );
+
+  const attrs = hasPaymentButton
+    ? { v: '1', type: 'native_flow' }
+    : { type: 'native_flow' };
+
+  const nativeFlowChild = hasPaymentButton
+    ? websocket.smax('native_flow', { name: 'payment_info' })
+    : websocket.smax('native_flow', { v: '2', name: 'mixed' });
+
+  return websocket.smax('buttons', attrs, [nativeFlowChild]);
+};
 
 export function prepareMessageButtons<T extends RawMessage>(
   message: T,
@@ -100,7 +176,7 @@ export function prepareMessageButtons<T extends RawMessage>(
   ) {
     throw new WPPError(
       'reply_and_cta_btn_not_allowed',
-      'It is not possible to send reply buttons and action buttons togetherButtons options must have between 1 and 3 options'
+      'It is not possible to send reply buttons and action buttons together'
     );
   }
 
@@ -162,7 +238,6 @@ export function prepareMessageButtons<T extends RawMessage>(
     },
   };
 
-  // This code is only for see buttons on sended device
   message.isFromTemplate = true;
   message.buttons = new TemplateButtonCollection();
   message.hydratedButtons = options.buttons.map((button, index) => {
@@ -195,40 +270,40 @@ export function prepareMessageButtons<T extends RawMessage>(
     }
 
     return {
-      index: index,
-      quickReplyButton: {
-        displayText: button.text,
-        id: button.id || `${index}`,
-      },
-    };
+      name: 'quick_reply',
+      buttonParamsJson: JSON.stringify({
+        display_text: button.text,
+        id: 'id' in button ? button.id : `${index}`,
+  }),
+};
   });
 
   message.buttons.add(
-    message.hydratedButtons.map((e, t: number) => {
-      const i = `${null != e.index ? e.index : t}`;
+    message.hydratedButtons.map((entry, fallbackIndex: number) => {
+      const id = `${entry.index ?? fallbackIndex}`;
 
-      if (e.urlButton) {
+      if (entry.urlButton) {
         return new TemplateButtonModel({
-          id: i,
-          displayText: e.urlButton?.displayText,
-          url: e.urlButton?.url,
+          id,
+          displayText: entry.urlButton.displayText,
+          url: entry.urlButton.url,
           subtype: 'url',
         });
       }
 
-      if (e.callButton) {
+      if (entry.callButton) {
         return new TemplateButtonModel({
-          id: i,
-          displayText: e.callButton.displayText,
-          phoneNumber: e.callButton.phoneNumber,
+          id,
+          displayText: entry.callButton.displayText,
+          phoneNumber: entry.callButton.phoneNumber,
           subtype: 'call',
         });
       }
 
       return new TemplateButtonModel({
-        id: i,
-        displayText: e.quickReplyButton?.displayText,
-        selectionId: e.quickReplyButton?.id,
+        id,
+        displayText: entry.quickReplyButton?.displayText,
+        selectionId: entry.quickReplyButton?.id,
         subtype: 'quick_reply',
       });
     })
@@ -240,7 +315,8 @@ export function prepareMessageButtons<T extends RawMessage>(
 webpack.onFullReady(() => {
   wrapModuleFunction(createMsgProtobuf, (func, ...args) => {
     const [message] = args;
-    const r = func(...args);
+    let proto = func(...args);
+
     if (message.interactiveMessage?.nativeFlowMessage?.buttons !== undefined) {
       const mediaPart = [
         'documentMessage',
@@ -249,35 +325,60 @@ webpack.onFullReady(() => {
         'locationMessage',
         'videoMessage',
       ];
+
       for (let part of mediaPart) {
-        if (part in r) {
+        if (part in proto) {
           const partName = part;
-          if (part === 'documentWithCaptionMessage') part = 'documentMessage';
+          if (part === 'documentWithCaptionMessage') {
+            part = 'documentMessage';
+          }
 
           message.interactiveMessage.header = {
             ...message.interactiveMessage.header,
-            [`${part}`]: r[partName]?.message?.documentMessage || r[partName],
+            [part]: proto[partName]?.message?.documentMessage || proto[partName],
             hasMediaAttachment: true,
           };
-          delete r[partName];
+          delete proto[partName];
           break;
         }
       }
-      if (typeof r.extendedTextMessage !== 'undefined')
-        delete r.extendedTextMessage;
-      if (typeof r.conversation !== 'undefined') delete r.conversation;
-      r.viewOnceMessage = {
-        message: {
-          interactiveMessage: message.interactiveMessage,
-        },
-      };
+
+      if (typeof proto.extendedTextMessage !== 'undefined') {
+        delete proto.extendedTextMessage;
+      }
+      if (typeof proto.conversation !== 'undefined') {
+        delete proto.conversation;
+      }
+
+      proto.interactiveMessage = message.interactiveMessage;
+      log('interactiveMessage attached to proto', {
+        keys: Object.keys(proto),
+      });
+
+      const patched = patchMessageForMdIfRequired(proto);
+      const fallbackNeeded =
+        shouldForceViewOnceFallback() || shouldAutoFallback();
+
+      if (patched !== proto) {
+        log('documentWithCaptionMessage patch applied', {
+          keys: Object.keys(patched),
+        });
+        proto = patched;
+      }
+
+      if (fallbackNeeded) {
+        proto = wrapWithViewOnce(proto);
+        warn('viewOnce fallback enabled for interactive buttons');
+      }
     }
-    return r;
+
+    return proto;
   });
 
   wrapModuleFunction(encodeMaybeMediaType, (func, ...args) => {
     const [type] = args;
     if (type === 'button') {
+      log('dropping button attr via encodeMaybeMediaType');
       return DROP_ATTR;
     }
     return func(...args);
@@ -289,6 +390,7 @@ webpack.onFullReady(() => {
       proto.documentWithCaptionMessage?.message?.templateMessage
         ?.hydratedTemplate
     ) {
+      log('mediaTypeFromProtobuf patched for hydrated template');
       return func(
         proto.documentWithCaptionMessage?.message?.templateMessage
           ?.hydratedTemplate
@@ -300,33 +402,14 @@ webpack.onFullReady(() => {
   wrapModuleFunction(typeAttributeFromProtobuf, (func, ...args) => {
     const [proto] = args;
 
-    if (proto?.viewOnceMessage?.interactiveMessage) {
-      const keys = Object.keys(proto?.viewOnceMessage?.interactiveMessage);
-
-      const messagePart = [
-        'documentMessage',
-        'documentWithCaptionMessage',
-        'imageMessage',
-        'locationMessage',
-        'videoMessage',
-      ];
-
-      if (messagePart.some((part) => keys.includes(part))) {
-        return 'media';
-      }
-
-      return 'text';
-    } else if (
-      proto?.documentWithCaptionMessage?.message?.templateMessage
-        ?.hydratedTemplate
-    ) {
+    if (proto?.documentWithCaptionMessage?.message?.interactiveMessage) {
       const keys = Object.keys(
-        proto?.documentWithCaptionMessage?.message?.templateMessage
-          ?.hydratedTemplate
+        proto.documentWithCaptionMessage.message.interactiveMessage
       );
 
       const messagePart = [
         'documentMessage',
+        'documentWithCaptionMessage',
         'imageMessage',
         'locationMessage',
         'videoMessage',
@@ -356,24 +439,24 @@ webpack.onFullReady(() => {
     if (proto.buttonsMessage) {
       buttonNode = websocket.smax('buttons');
     } else if (proto.listMessage) {
-      // The trick to send list message is to force the 'product_list' type in the biz node
-      // const listType: number = proto.listMessage.listType || 0;
       const listType = 2;
-
       const types = ['unknown', 'single_select', 'product_list'];
 
       buttonNode = websocket.smax('list', {
         v: '2',
         type: types[listType],
       });
+    } else {
+      buttonNode =
+        buildNativeFlowBizNode(proto) ||
+        buildNativeFlowBizNode(proto?.documentWithCaptionMessage?.message) ||
+        buildNativeFlowBizNode(proto?.viewOnceMessage?.message);
     }
 
     let node = await func(...args);
-    if (proto?.viewOnceMessage?.message?.interactiveMessage) {
-      node = await encryptAndParserMsgButtons(...args, func);
-    }
 
     if (!buttonNode) {
+      log('no button node detected, returning original stanza');
       return node;
     }
 
@@ -387,16 +470,21 @@ webpack.onFullReady(() => {
       content.push(bizNode);
     }
 
-    let hasButtonNode = false;
-
-    if (Array.isArray(bizNode.content)) {
-      hasButtonNode = !!bizNode.content.find((c) => c.tag === buttonNode?.tag);
-    } else {
+    if (!Array.isArray(bizNode.content)) {
       bizNode.content = [];
     }
 
-    if (!hasButtonNode) {
+    const alreadyPresent = bizNode.content.some(
+      (c) =>
+        c.tag === buttonNode?.tag &&
+        c.attrs?.type === buttonNode?.attrs?.type
+    );
+
+    if (!alreadyPresent) {
       bizNode.content.push(buttonNode);
+      log('native_flow button node attached to biz', buttonNode);
+    } else {
+      log('biz node already contains a button node, skipping attach');
     }
 
     return node;
@@ -406,9 +494,8 @@ webpack.onFullReady(() => {
     const [key] = args;
     switch (key) {
       case 'web_unwrap_message_for_stanza_attributes':
+        log('overriding AB prop web_unwrap_message_for_stanza_attributes');
         return false;
-      /*case 'enable_web_calling':
-        return true;*/
     }
     return func(...args);
   });
