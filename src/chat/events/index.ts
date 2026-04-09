@@ -16,12 +16,13 @@
 
 import './registerAckMessageEvent';
 import './registerActiveChatEvent';
+import './registerEditedMessageEvent';
+import './registerLabelEvent';
 import './registerLiveLocationUpdateEvent';
+import './registerNewChat';
 import './registerNewMessageEvent';
 import './registerPollEvent';
 import './registerPresenceChange';
 import './registerReactionsEvent';
 import './registerRevokeMessageEvent';
-import './registerLabelEvent';
-import './registerEditedMessageEvent';
 import './registerUnreadCountEvent';

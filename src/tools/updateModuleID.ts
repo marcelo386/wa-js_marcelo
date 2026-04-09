@@ -104,6 +104,8 @@ async function start() {
    * This will not directly affect the function call, it continues to work normally.
    */
   const ignoreFailModules: string[] = [
+    'enums.StreamInfo', // Plain TypeScript enum, not a webpack module
+    'enums.StreamMode', // Plain TypeScript enum, not a webpack module
     'functions.createCollection',
     'functions.deleteCollection',
     'functions.editCollection',
@@ -113,6 +115,15 @@ async function start() {
     'functions.muteNewsletter', // removed in version 2.3000.1032373751
     'functions.unmuteNewsletter', // removed in version 2.3000.1032373751
     'functions.toggleNewsletterAdminActivityMuteStateAction', // new in version >= 2.3000.1032373751
+    'functions.msgFindQuery', // stopped working in WA version ~2.3000.1034162388
+    'functions.msgFindBefore', // added in WA version 2.3000.1034162388, but not available in older versions
+    'functions.msgFindAfter', // added in WA version 2.3000.1034162388, but not available in older versions
+    'functions.msgFindByDirection', // added in WA version 2.3000.1034162388, but not available in older versions
+    'functions.msgFindCallLog', // added in WA version 2.3000.1034162388, but not available in older versions
+    'functions.msgFindEvents', // added in WA version 2.3000.1034162388, but not available in older versions
+    'functions.msgFindMedia', // added in WA version 2.3000.1034162388, but not available in older versions
+    'functions.msgFindSearch', // added in WA version 2.3000.1034162388, but not available in older versions
+    'functions.msgFindStarred', // added in WA version 2.3000.1034162388, but not available in older versions
   ];
 
   for (const moduleName of Object.keys(result)) {

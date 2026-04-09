@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-export * from './ACK';
-export * from './CALL_STATES';
-export * from './CHANNEL_EVENT_SURFACE';
-export * from './GROUP_SETTING_TYPE';
-export * from './KIC_ENTRY_POINT_TYP';
-export * from './LogoutReason';
-export * from './MSG_TYPE';
-export * from './OUTWARD_TYPES';
-export * from './PIN_STATE';
-export * from './PinExpiryDurationOption';
-export * from './SendMsgResult';
-export * from './StreamInfo';
-export * from './StreamMode';
+import { internalEv } from '../../eventEmitter';
+import * as webpack from '../../webpack';
+import { ChatModel, ChatStore } from '../../whatsapp';
+
+webpack.onInjected(() => registerNewChat());
+
+function registerNewChat() {
+  ChatStore.on('add', (chat: ChatModel) => {
+    queueMicrotask(() => {
+      internalEv.emit('chat.new_chat', chat);
+    });
+  });
+}

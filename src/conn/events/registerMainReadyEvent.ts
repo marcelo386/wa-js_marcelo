@@ -1,5 +1,5 @@
 /*!
- * Copyright 2021 WPPConnect Team
+ * Copyright 2026 WPPConnect Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,64 +18,27 @@ import Debug from 'debug';
 
 import { internalEv } from '../../eventEmitter';
 import * as webpack from '../../webpack';
-import { Cmd, Stream } from '../../whatsapp';
+import { StreamMode } from '../../whatsapp/enums';
 
 const debug = Debug('WA-JS:conn:main_ready');
 
 webpack.onInjected(register);
-let isMainReady = false;
 
 function register() {
-  const trigger = async () => {
-    debug('trigger called, isMainReady:', isMainReady);
-    if (!isMainReady) {
-      isMainReady = true;
-      setTimeout(() => (isMainReady = false), 1000);
+  const isReadyMode = (mode: StreamMode) =>
+    mode === StreamMode.MAIN ||
+    mode === StreamMode.QR ||
+    mode === StreamMode.SYNCING;
+
+  const checkMode = (mode: StreamMode) => {
+    if (isReadyMode(mode)) {
       debug('emitting conn.main_ready');
       internalEv.emit('conn.main_ready');
+      // Remove listener after first emission
+      internalEv.off('conn.stream_mode_changed', checkMode);
     }
   };
 
-  const isReadyMode = (mode: string) => mode === 'MAIN' || mode === 'QR';
-
-  if (isReadyMode(Stream.mode)) {
-    debug('Stream.mode is already ready:', Stream.mode);
-    trigger();
-  } else {
-    debug('Stream.mode is not ready, registering listeners');
-    Cmd.on('main_stream_mode_ready', () => {
-      debug('main_stream_mode_ready event received');
-      trigger();
-    });
-    Cmd.on('main_stream_mode_ready_legacy', () => {
-      debug('main_stream_mode_ready_legacy event received');
-      trigger();
-    });
-
-    // Also listen for Stream mode changes in case events were missed
-    const checkMode = () => {
-      debug('Stream.mode changed to:', Stream.mode);
-      if (isReadyMode(Stream.mode)) {
-        debug('Stream.mode is now ready:', Stream.mode);
-        trigger();
-      }
-    };
-
-    // Listen to Stream model changes
-    debug('typeof Stream.on:', typeof Stream.on);
-    if (typeof Stream.on === 'function') {
-      debug('Registering Stream change:mode listener');
-      Stream.on('change:mode', checkMode);
-    } else {
-      debug('Stream.on is not a function, trying alternative approach');
-      // Try polling as fallback
-      const pollInterval = setInterval(() => {
-        debug('Polling Stream.mode:', Stream.mode);
-        if (isReadyMode(Stream.mode)) {
-          clearInterval(pollInterval);
-          trigger();
-        }
-      }, 500);
-    }
-  }
+  // Listen to stream mode changes (includes current value on registration)
+  internalEv.on('conn.stream_mode_changed', checkMode);
 }

@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   id-token: write
@@ -12,40 +12,38 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+
+    env:
+      PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Fetching tags
-        run: git fetch --tags -f || true
-
       - name: Setup Node
-        uses: actions/setup-node@v6.2.0
+        uses: actions/setup-node@v6
         with:
-          node-version: '24.14.0'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
-      - name: Setup npm cache
-        uses: actions/cache@v5
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: "24.14.0"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
 
       - name: Install Dependencies
-        run: npm ci || npm install
+        run: npm ci
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: true
 
-      - name: Publish in NPM
-        run: npm publish --access public
+      # opcional: remove warning do always-auth se existir em algum lugar
+      - name: Remove legacy npm config
+        run: npm config delete always-auth || true
+
+      # seu prepare já roda no publish (prepare -> husky install + clean + build:prd)
+      - name: Publish to npm (OIDC)
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ""
+          NPM_TOKEN: ""
 
       - name: Generate Changelog
         id: generate_changelog
@@ -67,12 +65,13 @@ jobs:
           body: ${{ steps.generate_changelog.outputs.changelog }}
           draft: false
           prerelease: false
-          files: >
+          files: |
             dist/wppconnect-wa.js
           gzip: folders
           allow_override: true
 
       - name: Update WPPConnect Site
+        if: env.PERSONAL_TOKEN != ''
         run: gh workflow run update-blog.yml --repo wppconnect-team/wppconnect-team.github.io
         continue-on-error: true
         env:
