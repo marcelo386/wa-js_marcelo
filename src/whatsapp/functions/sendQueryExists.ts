@@ -20,7 +20,10 @@ import { exportModule } from '../exportModule';
 /** @whatsapp 57547
  * @whatsapp 69722 >= 2.2204.13
  */
-export declare function sendQueryExists(contact: Wid): Promise<{
+export declare function queryWidExists(
+  contact: Wid,
+  requestOrigin?: string // Telemetry only, not used for the actual query
+): Promise<{
   wid: Wid;
   biz: boolean;
   bizInfo?: {
@@ -36,17 +39,15 @@ export declare function sendQueryExists(contact: Wid): Promise<{
     duration: number;
     settingTimestamp: number;
   };
+  username?: string;
 }>;
 
 exportModule(
   exports,
   {
-    sendQueryExists: [
-      'queryExists', // @whatsapp >= 2.2208.7
-      'queryWidExists', // @whatsapp >= 2.2306.7
+    queryWidExists: [
+      'queryWidExists', // @whatsapp >= 2.2306.7 - handles lid and phone queries
     ],
   },
-  (m) =>
-    (m.queryExists && m.queryPhoneExists) || // @whatsapp >= 2.2211.2
-    (m.queryWidExists && m.queryPhoneExists) // @whatsapp >= 2.2306.7
+  (m) => m.queryWidExists && m.queryPhoneExists // @whatsapp >= 2.2306.7
 );

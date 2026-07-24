@@ -15,22 +15,22 @@
  */
 
 import { internalEv } from '../../eventEmitter';
-import * as webpack from '../../webpack';
+import * as loader from '../../loader';
 import { MsgModel, MsgStore } from '../../whatsapp';
 
-webpack.onInjected(() => registerUpdateOrderEvent());
+loader.onInjected(() => registerUpdateOrderEvent());
 
 function registerUpdateOrderEvent() {
   MsgStore.on('add', (msg: MsgModel) => {
     if (
       msg.type !== 'interactive' ||
-      msg.interactivePayload?.buttons[0].name !== 'payment_method' ||
+      msg.interactivePayload?.buttons[0]?.name !== 'payment_method' ||
       !msg.isNewMsg
     ) {
       return;
     }
     const payload = JSON.parse(
-      msg.interactivePayload?.buttons[0].buttonParamsJson
+      msg.interactivePayload?.buttons[0]?.buttonParamsJson
     );
 
     queueMicrotask(() => {

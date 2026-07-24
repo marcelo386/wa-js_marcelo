@@ -1,5 +1,5 @@
 /*!
- * Copyright 2021 WPPConnect Team
+ * Copyright 2026 WPPConnect Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-import { LOGOUT_REASON_CODE, LogoutReason } from '../enums';
 import { exportModule } from '../exportModule';
 
 /**
- * @whatsapp WAWebLogoutReason >= 2.3000.x
+ * @whatsapp WAWebVoipStackInterface
  */
-export declare function getErrorCodeFromLogoutReason(
-  type: LogoutReason
-): LOGOUT_REASON_CODE | null;
+export declare function getVoipStackInterface(): Promise<any>;
 
 exportModule(
   exports,
   {
-    getErrorCodeFromLogoutReason: 'getErrorCodeFromLogoutReason',
+    getVoipStackInterface: 'getVoipStackInterface',
   },
-  (m) => m.getErrorCodeFromLogoutReason
+  (m) => m.getVoipStackInterface
 );
