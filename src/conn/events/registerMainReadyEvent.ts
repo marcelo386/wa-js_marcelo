@@ -17,18 +17,16 @@
 import Debug from 'debug';
 
 import { internalEv } from '../../eventEmitter';
-import * as webpack from '../../webpack';
+import * as loader from '../../loader';
 import { StreamMode } from '../../whatsapp/enums';
 
 const debug = Debug('WA-JS:conn:main_ready');
 
-webpack.onInjected(register);
+loader.onInjected(register);
 
 function register() {
   const isReadyMode = (mode: StreamMode) =>
-    mode === StreamMode.MAIN ||
-    mode === StreamMode.QR ||
-    mode === StreamMode.SYNCING;
+    mode === StreamMode.MAIN || mode === StreamMode.QR;
 
   const checkMode = (mode: StreamMode) => {
     if (isReadyMode(mode)) {

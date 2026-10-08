@@ -1,5 +1,5 @@
 /*!
- * Copyright 2021 WPPConnect Team
+ * Copyright 2026 WPPConnect Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-export interface WebpackEvents {
-  'webpack.injected': void;
-  'webpack.ready': void;
-  'webpack.full_ready': void;
-}
+import { exportModule } from '../exportModule';
+
+/**
+ * @whatsapp WAWebVoipStackInterface
+ */
+export declare function getVoipStackInterface(): Promise<any>;
+
+exportModule(
+  exports,
+  {
+    getVoipStackInterface: 'getVoipStackInterface',
+  },
+  (m) => m.getVoipStackInterface
+);

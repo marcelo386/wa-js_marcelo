@@ -41,7 +41,8 @@ export interface SendMessageOptions {
   createChat?: boolean;
 
   /**
-   * Automatic detect and add the mentioned contacts with @[number]
+   * Automatic detect and add mentioned contacts with @[number], or mention
+   * everyone in a group with @all
    *
    * @default true
    *
@@ -139,7 +140,16 @@ export interface SendMessageReturn {
   to?: string;
   latestEditMsgKey?: MsgKey;
   ack: number;
-  sendMsgResult: Promise<SendMsgResultObject>;
+  /**
+   * The result of the send, already resolved.
+   *
+   * It is `null` when the send was not waited for, the value is only available
+   * with the `waitForAck` option.
+   *
+   * Note: awaiting it keeps working, a non promise value is awaited as itself,
+   * but `.then()` is not available.
+   */
+  sendMsgResult: SendMsgResultObject | null;
 }
 
 export type RawMessage = ModelPropertiesContructor<MsgModel>;

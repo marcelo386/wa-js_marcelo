@@ -19,32 +19,33 @@ import './config';
 import './deviceName';
 import './gtag';
 
-import * as webpack from './webpack';
+import * as loader from './loader';
 
-export { webpack };
-export { isInjected, isReady, isFullReady } from './webpack';
+export { isFullReady, isInjected, isReady } from './loader';
+export { loader };
 
 export { config, Config } from './config';
 
 export * as blocklist from './blocklist';
+export * as lists from './lists';
 export * as call from './call';
 export * as cart from './cart';
-export * as privacy from './privacy';
 export * as catalog from './catalog';
 export * as chat from './chat';
+export * as community from './community';
 export * as conn from './conn';
 export * as contact from './contact';
 export * as ev from './eventEmitter';
-export * as community from './community';
 export * as group from './group';
 export * as indexdb from './indexdb';
 export * as labels from './labels';
+export * as newsletter from './newsletter';
+export * as order from './order';
+export * as privacy from './privacy';
 export * as profile from './profile';
 export * as status from './status';
 export * as util from './util';
-export * as newsletter from './newsletter';
 export * as whatsapp from './whatsapp';
-export * as order from './order';
 
 export {
   emit,
@@ -52,10 +53,10 @@ export {
   eventNames,
   getMaxListeners,
   hasListeners,
-  listenTo,
   listenerCount,
   listeners,
   listenersAny,
+  listenTo,
   many,
   off,
   offAny,
@@ -75,8 +76,23 @@ export {
 
 declare const __VERSION__: string;
 declare const __SUPPORTED_WHATSAPP_WEB__: string;
+declare const __DEV__: boolean;
 export const version = __VERSION__;
 export const supportedWhatsappWeb = __SUPPORTED_WHATSAPP_WEB__;
 export const license = 'Apache-2.0';
 
-webpack.injectLoader();
+/**
+ * Console helpers for testing by hand, only in the development build.
+ *
+ * `__DEV__` is a DefinePlugin constant, so in production this is `if (false)`
+ * and webpack drops both the require and the whole `./dev` module from the
+ * bundle. The type import is erased at compile time, it adds no dependency.
+ */
+export let dev: typeof import('./dev') | undefined;
+
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  dev = require('./dev');
+}
+
+loader.injectLoader();

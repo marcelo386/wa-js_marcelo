@@ -15,30 +15,55 @@
  */
 
 import { internalEv } from '../../eventEmitter';
-import * as webpack from '../../webpack';
+import * as loader from '../../loader';
 import { Stream, StreamModel } from '../../whatsapp';
 import { StreamInfo, StreamMode } from '../../whatsapp/enums';
 
-webpack.onInjected(register);
+loader.onInjected(register);
+
+let finished = false;
+let startedAt: number | undefined;
+let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
 function register() {
-  // Emit current StreamMode immediately
-  if (Stream.mode) {
-    internalEv.emit('conn.stream_mode_changed', Stream.mode);
+  if (finished || retryTimer !== undefined) {
+    return;
   }
 
-  // Emit current StreamInfo immediately
-  if (Stream.info) {
-    internalEv.emit('conn.stream_info_changed', Stream.info);
+  const stream = Stream;
+  if (!stream) {
+    startedAt ??= Date.now();
+    if (Date.now() - startedAt >= 60_000) {
+      finished = true;
+      console.error('WA-JS: Stream events could not be registered after 60s');
+      return;
+    }
+    // Retry only the missing binding, never an already installed registrar.
+    retryTimer = setTimeout(() => {
+      retryTimer = undefined;
+      register();
+    }, 1_000);
+    return;
   }
+
+  finished = true;
 
   // Listen to StreamMode changes
-  Stream.on('change:mode', (model: StreamModel, mode: StreamMode) => {
+  stream.on('change:mode', (model: StreamModel, mode: StreamMode) => {
     internalEv.emit('conn.stream_mode_changed', mode);
   });
 
   // Listen to StreamInfo changes
-  Stream.on('change:info', (model: StreamModel, info: StreamInfo) => {
+  stream.on('change:info', (model: StreamModel, info: StreamInfo) => {
     internalEv.emit('conn.stream_info_changed', info);
   });
+
+  // Install both listeners before dispatching the current state. A listener
+  // exception must not leave the native hooks missing or trigger duplicates.
+  if (stream.mode) {
+    internalEv.emit('conn.stream_mode_changed', stream.mode);
+  }
+  if (stream.info) {
+    internalEv.emit('conn.stream_info_changed', stream.info);
+  }
 }

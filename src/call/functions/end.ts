@@ -15,90 +15,43 @@
  */
 
 import { WPPError } from '../../util';
-import { CallModel, CallStore, websocket } from '../../whatsapp';
-import { CALL_STATES } from '../../whatsapp/enums';
+import { CallStore } from '../../whatsapp';
+import { getVoipStackInterface } from '../../whatsapp/functions';
 
 /**
- * End a call
+ * `WAWebVoipSignalingEnums.EndCallReason.Self` - ended by the local user
+ */
+const END_CALL_REASON_SELF = 2;
+
+/**
+ * End a call using the WhatsApp Web native VoIP stack
  *
  * @example
  * ```javascript
  * // End any call
  * WPP.call.end();
- *
- * // End specific call id
- * WPP.call.end(callId);
- *
- * // End any incoming call
- * WPP.on('call.incoming_call', (call) => {
- *   WPP.call.end(call.id);
- * });
  * ```
  *
- * @param   {string}  callId  The call ID, empty to end the first one
- * @return  {[type]}          [return description]
+ * @return  {Promise<boolean>}
  */
-export async function end(callId?: string): Promise<boolean> {
-  const callOut = [
-    CALL_STATES.ACTIVE,
-    CALL_STATES.OUTGOING_CALLING,
-    CALL_STATES.OUTGOING_RING,
-    CALL_STATES.CallActive,
-  ];
-
-  let call: CallModel | undefined = undefined;
-
-  if (callId) {
-    call = CallStore.get(callId);
-  } else {
-    call = CallStore.activeCall ?? undefined;
-  }
-
-  if (!call) {
+export async function end(): Promise<boolean> {
+  const voipStack = await getVoipStackInterface();
+  if (!voipStack) {
     throw new WPPError(
-      'call_not_found',
-      `Call ${callId || '<empty>'} not found`,
-      {
-        callId,
-      }
+      'voip_stack_not_found',
+      'VoIP stack interface is not available'
     );
   }
 
-  if (!callOut.includes(call.getState()) && !call.isGroup) {
-    throw new WPPError(
-      'call_is_not_outcoming_calling',
-      `Call ${callId || '<empty>'} is not incoming calling`,
-      {
-        callId,
-        state: call.getState(),
-      }
-    );
+  // Marks the call as ended by us instead of missed on the call log,
+  // like the end button in `useWAWebVoipCallHandlers` does
+  const activeCall: any = (CallStore as any)?.activeCall;
+  if (activeCall) {
+    activeCall.userEndedCall = true;
   }
 
-  if (!call.peerJid.isGroupCall()) {
-    await websocket.ensureE2ESessions([call.peerJid]);
-  }
-
-  const node = websocket.smax(
-    'call',
-    {
-      to: call.peerJid.toString({ legacy: true }),
-      id: websocket.generateId(),
-    },
-    [
-      websocket.smax(
-        'terminate',
-        {
-          'call-id': call.id,
-          'call-creator': call.peerJid.toString({ legacy: true }),
-          // count: '0',
-        },
-        null
-      ),
-    ]
-  );
-
-  await websocket.sendSmaxStanza(node);
+  // endCall(reason, isUserInitiated)
+  await voipStack.endCall(END_CALL_REASON_SELF, true);
 
   return true;
 }

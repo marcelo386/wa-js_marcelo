@@ -1,5 +1,5 @@
 /*!
- * Copyright 2021 WPPConnect Team
+ * Copyright 2026 WPPConnect Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,30 @@
  * limitations under the License.
  */
 
-import { LOGOUT_REASON_CODE, LogoutReason } from '../enums';
+import { MediaEntry, MsgModel } from '..';
 import { exportModule } from '../exportModule';
 
-/**
- * @whatsapp WAWebLogoutReason >= 2.3000.x
- */
-export declare function getErrorCodeFromLogoutReason(
-  type: LogoutReason
-): LOGOUT_REASON_CODE | null;
+interface UploadMediaWithPrepOptions {
+  isMediaCryptoExpectedForChat: boolean;
+  type: string;
+}
+
+interface UploadMediaWithPrepResult {
+  body?: string;
+  mediaResult: {
+    mediaEntry?: MediaEntry;
+  };
+  mmsThumbnailData?: Record<string, unknown> | null;
+}
+
+/** @whatsapp WAWebMediaUploadMediaWithPrep */
+export declare function uploadMediaWithPrep(
+  message: MsgModel,
+  options: UploadMediaWithPrepOptions
+): Promise<UploadMediaWithPrepResult>;
 
 exportModule(
   exports,
-  {
-    getErrorCodeFromLogoutReason: 'getErrorCodeFromLogoutReason',
-  },
-  (m) => m.getErrorCodeFromLogoutReason
+  { uploadMediaWithPrep: 'uploadMediaWithPrep' },
+  (module) => module.uploadMediaWithPrep
 );

@@ -8,3 +8,5 @@
 /userDataDir*
 /wa-source
 yarn.lock
+wppconnect/
+/test-results

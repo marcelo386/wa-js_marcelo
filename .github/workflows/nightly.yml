@@ -5,13 +5,16 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: write
+
 jobs:
   nightly:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -19,16 +22,16 @@ jobs:
         run: git fetch --tags -f || true
 
       - name: Setup Node
-        uses: actions/setup-node@v6.3.0
+        uses: actions/setup-node@v7.0.0
         with:
-          node-version: 24.14.0
+          node-version: 24.21.0
 
       - name: Get npm cache directory
         id: npm-cache
         run: |
           echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
       - name: Setup npm cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.npm-cache.outputs.dir }}
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -55,14 +58,14 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Update Nightly TAG
-        uses: richardsimko/update-tag@v1
+        uses: richardsimko/update-tag@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: nightly
 
       - name: Update Nightly Release
-        uses: meeDamian/github-release@2.0
+        uses: meeDamian/github-release@v2.0.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

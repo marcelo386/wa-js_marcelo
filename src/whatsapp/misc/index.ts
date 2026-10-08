@@ -15,12 +15,14 @@
  */
 
 export * from './ApiContact';
+export * from './BackendEventBus';
 export * from './Base64';
 export * from './Browser';
 export * from './ChatPresence';
 export * from './Cmd';
 export * from './ComposeBoxActions';
 export * from './Conn';
+export * from './ConnGetters';
 export * from './Constants';
 export * from './Enviroment';
 export * from './EventEmitter';
@@ -28,6 +30,7 @@ export * from './ImageUtils';
 export * from './IsOfficialClient';
 export * from './Lid1X1MigrationUtils';
 export * from './LidPnCache';
+export * from './LinkDeviceEvents';
 export * from './LruMediaStore';
 export * from './MediaBlobCache';
 export * from './MediaEntry';
@@ -36,9 +39,11 @@ export * from './MediaObject';
 export * from './MediaObjectUtil';
 export * from './MediaPrep';
 export * from './MediaUtils';
+export * from './MexClient';
 export * from './MsgKey';
 export * from './MsgLoad';
 export * from './NetworkStatus';
+export * from './NewsletterGatingUtils';
 export * from './OpaqueData';
 export * from './ProductCatalogSession';
 export * from './ServerProps';

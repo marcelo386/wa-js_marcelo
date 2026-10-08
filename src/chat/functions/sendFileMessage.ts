@@ -17,6 +17,7 @@
 import Debug from 'debug';
 
 import { assertFindChat } from '../../assert';
+import * as loader from '../../loader';
 import {
   blobToArrayBuffer,
   convertToFile,
@@ -28,10 +29,10 @@ import {
   formatFileSize,
   getMediaTypeForValidation,
 } from '../../util/fileHelpers';
-import * as webpack from '../../webpack';
 import * as whatsapp from '../../whatsapp';
 import {
   ChatModel,
+  lidPnCache,
   MediaPrep,
   MsgKey,
   MsgModel,
@@ -401,6 +402,7 @@ export async function sendFileMessage(
     productMsgOptions: chatId === 'status@broadcast' ? undefined : rawMessage,
     addEvenWhilePreparing: false,
     type: rawMessage.type,
+    useBasePropsType: rawMessage.type === 'interactive',
   };
 
   let sendMsgResult;
@@ -415,18 +417,7 @@ export async function sendFileMessage(
   let message: any = null;
 
   if (rawMessage.to?.toString() == 'status@broadcast') {
-    message = await new Promise<MsgModel>((resolve) => {
-      StatusV3Store.on(
-        'change:lastReceivedKey',
-        async function fn(chat: ChatModel, msgKey: MsgKey) {
-          if (chat.id.toString() == rawMessage.from?.toString()) {
-            StatusV3Store.off('change:lastReceivedKey', fn);
-            const message = await getMessageById(msgKey);
-            resolve(message);
-          }
-        }
-      );
-    });
+    message = await waitForOwnStatusMsg(rawMessage);
   } else {
     message = await new Promise<MsgModel>((resolve) => {
       chat.msgs.on('add', function fn(msg: MsgModel) {
@@ -450,10 +441,12 @@ export async function sendFileMessage(
   });
 
   if (chatId !== 'status@broadcast') {
+    let sendResult: whatsapp.SendMsgResultObject | null = null;
+
     if (options.waitForAck) {
       debug(`waiting ack for ${message.id}`);
 
-      const sendResult = await sendMsgResult;
+      sendResult = await sendMsgResult;
 
       debug(
         `ack received for ${message.id} (ACK: ${message.ack}, SendResult: ${JSON.stringify(sendResult)})`
@@ -463,7 +456,7 @@ export async function sendFileMessage(
     return {
       id: message.id?.toString(),
       ack: message.ack!,
-      sendMsgResult,
+      sendMsgResult: sendResult,
     };
   } else {
     // Forced a mode to return the ID since sendMediaResult was giving an error when sending with certain parameters.
@@ -491,9 +484,61 @@ export async function sendFileMessage(
       ack: msg.ack!,
       sendMsgResult: {
         messageSendResult: SendMsgResult.OK,
-      } as any,
+      },
     };
   }
+}
+
+/**
+ * Wait for WhatsApp to register our own status message.
+ *
+ * `StatusV3Store` keys the statuses by the author chat and, after the LID
+ * migration, that id is not necessarily the addressing mode of the outgoing
+ * `from`: `status@broadcast` is not a LID chat, so `prepareRawMessage` uses the
+ * phone number while the store can hold the LID (or the other way around).
+ * Comparing only the literal ids never matches then, and without a deadline the
+ * send stays pending forever instead of failing.
+ */
+function waitForOwnStatusMsg(rawMessage: RawMessage): Promise<MsgModel> {
+  const ownIds = new Set<string>();
+  const from = rawMessage.from;
+
+  if (from) {
+    ownIds.add(from.toString());
+
+    const equivalentId = from.isLid()
+      ? lidPnCache?.getPhoneNumber?.(from)
+      : lidPnCache?.getCurrentLid?.(from);
+
+    if (equivalentId) {
+      ownIds.add(equivalentId.toString());
+    }
+  }
+
+  return new Promise<MsgModel>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      StatusV3Store.off('change:lastReceivedKey', fn);
+      reject(
+        new WPPError(
+          'timeout_on_register_status',
+          'Timeout waiting for WhatsApp to register the status message',
+          { from: from?.toString() }
+        )
+      );
+    }, 30000);
+
+    async function fn(chat: ChatModel, msgKey: MsgKey) {
+      if (!ownIds.has(chat.id.toString())) {
+        return;
+      }
+
+      StatusV3Store.off('change:lastReceivedKey', fn);
+      clearTimeout(timeout);
+      resolve(await getMessageById(msgKey));
+    }
+
+    StatusV3Store.on('change:lastReceivedKey', fn);
+  });
 }
 
 /**
@@ -535,7 +580,7 @@ function generateWhiteThumb(width: number, height: number, maxSize: number) {
   };
 }
 
-webpack.onFullReady(() => {
+loader.onFullReady(() => {
   wrapModuleFunction(generateVideoThumbsAndDuration, async (func, ...args) => {
     const [data] = args;
 

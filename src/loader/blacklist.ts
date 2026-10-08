@@ -1,0 +1,97 @@
+/*!
+ * Copyright 2021 WPPConnect Team
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Module IDs in WhatsApp's Meta loader that must be skipped when
+ * enumerating modules. They throw or otherwise misbehave when required.
+ *
+ * Each entry should be annotated with the WA version where it was added.
+ */
+export const META_MODULE_ID_BLACKLIST: ReadonlySet<string> = new Set([
+  // Throws "bx(...): Unknown file path "9550""
+  'WAWebEmojiPanelContentEmojiSearchEmpty.react',
+  // Locale shim that fails to resolve
+  'WAWebMoment-es-do',
+]);
+
+/**
+ * Module ID prefixes that must be skipped when enumerating modules.
+ *
+ * `WAWebMoment-<locale>` modules call `moment.defineLocale()` when they run,
+ * which makes that locale Moment's global locale and changes the language
+ * WhatsApp Web uses for dates (e.g. chat day separators). WhatsApp loads the
+ * locale it needs by itself, so enumerating modules must never run the others.
+ */
+export const META_MODULE_ID_PREFIX_BLACKLIST: readonly string[] = [
+  'WAWebMoment-',
+];
+
+export function isMetaModuleBlacklisted(id: string): boolean {
+  return (
+    META_MODULE_ID_BLACKLIST.has(id) ||
+    META_MODULE_ID_PREFIX_BLACKLIST.some((prefix) => id.startsWith(prefix))
+  );
+}
+
+/**
+ * Property names handled by `exportModule()` whose absence is acceptable
+ * (e.g., they only resolve after device is connected, or were renamed in a
+ * specific WA version). When missing, no error is reported.
+ */
+export const IGNORE_FAIL_MODULES: ReadonlySet<string> = new Set([
+  // Recent WhatsApp versions removed this gate from native list mutations.
+  // lists/assertListEditingAvailable preserves it only where it still exists.
+  'labelsEditingEnabled',
+  'revokeStatus',
+  'toggleNewsletterAdminActivityMuteStateAction',
+  // stopped working in WA version ~2.3000.1034162388
+  'msgFindQuery',
+  // The following were added in WA version 2.3000.1034162388 and are
+  // unavailable on older versions. Remove once older versions are no
+  // longer supported.
+  'msgFindBefore',
+  'msgFindAfter',
+  'msgFindByDirection',
+  'msgFindCallLog',
+  'msgFindEvents',
+  'msgFindMedia',
+  'msgFindSearch',
+  'msgFindStarred',
+  // WAWebCartItemCollection was removed from WA ~= 2.3000.1039092809
+  'CartItemCollection',
+  // subscribeGroupPresence only exists in WAWebContactPresenceBridge >= ~2.3000.1039447205
+  'subscribeGroupPresence',
+  // The dedicated newsletter mute mex mutations were removed in WA ~2.3000.1042652105.
+  // Newsletter muting now goes through `toggleNewsletterAdminActivityMuteStateAction`
+  // (the preferred path already used by `WPP.newsletter.mute`), so the absence of these
+  // legacy fallbacks is expected.
+  'muteNewsletter',
+  'unmuteNewsletter',
+  // The ServerProps store/model was removed from WA ~2.3000.1042652105; its data now
+  // comes from `ServerPropsConstants` (WAWebServerPropConstants) plus the `ServerProps`
+  // fallback module. `ServerPropsModel` is only used as a TypeScript type at runtime.
+  'ServerPropsModel',
+  // getUserhash was removed from WAWebContactGetters in WA ~2.3000.1043126001;
+  // src/contact/patch.ts reimplements it with WAMd5's md5 when it is missing.
+  'getUserhash',
+  // WAWebConnGetters was introduced in WA ~2.3000.1045643679; older versions
+  // still have isSMB directly on Conn.
+  'ConnGetters',
+  // WAWebConstantsDeprecated was removed from WA ~2.3000.1044096409; its values
+  // are now spread across specific modules (WAWebMediaConstants,
+  // WAWebBizCommerceConstants, ...).
+  'Constants',
+]);

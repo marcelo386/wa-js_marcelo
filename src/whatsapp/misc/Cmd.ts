@@ -18,6 +18,7 @@ import { ChatModel } from '..';
 import { exportModule } from '../exportModule';
 import { getSearchContext } from '../functions';
 import { MsgModel } from '../models';
+import { ChatSearchFilter } from '../types';
 import { EventEmitter } from '.';
 
 /** @whatsapp 88102
@@ -224,9 +225,16 @@ export declare class CmdClass extends EventEmitter {
   showMerchantDetailsEntityTypePopup(e?: any, t?: any): void;
   showCountrySelector(e?: any, t?: any, r?: any): void;
   toggleStickerMaker(): void;
-  setActiveFilter(
-    type?: 'unread' | 'favorites' | 'personal' | 'assigned_to_you' | 'labels'
-  ): Promise<void>;
+  /**
+   * Set the active chat list filter, `undefined` for all chats.
+   *
+   * Accepted types are the values of `WAWebChatSearchFilters`.
+   * `labelId` is only used with the `labels` filter.
+   *
+   * Note: this is a synchronous shortcut for
+   * `Cmd.trigger('set_active_filter', type, labelId)`.
+   */
+  setActiveFilter(type?: ChatSearchFilter, labelId?: string): void;
 }
 
 /** @whatsapp 88102

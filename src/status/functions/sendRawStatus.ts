@@ -17,7 +17,7 @@
 import { assertWid } from '../../assert';
 import * as Chat from '../../chat';
 import { getMyUserWid } from '../../conn/functions/getMyUserWid';
-import * as webpack from '../../webpack';
+import * as loader from '../../loader';
 import { MsgKey } from '../../whatsapp';
 import { wrapModuleFunction } from '../../whatsapp/exportModule';
 import {
@@ -69,7 +69,7 @@ export async function sendRawStatus(
   return result;
 }
 
-webpack.onInjected(() => {
+loader.onInjected(() => {
   // allow to send backgroundColor, textColor and font for status
   wrapModuleFunction(createMsgProtobuf, (func, ...args) => {
     const [msg] = args;
@@ -100,7 +100,16 @@ webpack.onInjected(() => {
     if (msg.data.to?.toString() == 'status@broadcast') {
       const proto = createMsgProtobuf(msg.data);
       try {
-        await encryptAndSendStatusMsg(msg as any, proto, perf);
+        if (encryptAndSendStatusMsg.length === 1) {
+          await encryptAndSendStatusMsg({
+            metricsReporter: perf,
+            msgProtobuf: proto,
+            sendMsgRecord: msg,
+          });
+        } else {
+          // TODO: remove when positional-signature builds leave wa-version.
+          await encryptAndSendStatusMsg(msg as any, proto, perf);
+        }
         return {
           t: msg.data.t,
           sync: null,
@@ -117,7 +126,7 @@ webpack.onInjected(() => {
   });
 });
 
-webpack.onFullReady(() => {
+loader.onFullReady(() => {
   // Force to load buttons and post status in whatsapp web
   wrapModuleFunction(getABPropConfigValue, (func, ...args) => {
     const [key] = args;

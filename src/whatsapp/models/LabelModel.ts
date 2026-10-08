@@ -25,9 +25,12 @@ import {
 interface Props {
   id: string;
   name: string;
-  colorIndex?: number;
+  colorIndex?: number | null;
+  isActive?: boolean;
   color?: number;
   count?: any;
+  type?: number;
+  predefinedId?: number;
 }
 
 interface Session {

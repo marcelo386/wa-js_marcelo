@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-import * as webpack from '../webpack';
-import { ChatModel, ContactStore, functions } from '../whatsapp';
+import * as loader from '../loader';
+import { ChatModel, functions } from '../whatsapp';
 import { wrapModuleFunction } from '../whatsapp/exportModule';
 import {
-  createChat,
   createChatRecord,
-  findChat,
-  getEnforceCurrentLid,
-  getExisting,
+  getABPropConfigValue,
   isLidMigrated,
   isUnreadTypeMsg,
   mediaTypeFromProtobuf,
-  toUserLid,
   typeAttributeFromProtobuf,
 } from '../whatsapp/functions';
-import { ApiContact } from '../whatsapp/misc';
+import { forceMediaUploadMainThread } from './functions/forceMediaUploadMainThread';
 
-webpack.onFullReady(applyPatch, 1000);
-webpack.onFullReady(applyPatchModel);
+loader.onFullReady(applyPatch, 1000);
+loader.onFullReady(applyPatchModel);
 
 function applyPatch() {
   wrapModuleFunction(mediaTypeFromProtobuf, (func, ...args) => {
@@ -108,65 +104,30 @@ function applyPatch() {
     }
   });
 
-  wrapModuleFunction(findChat, async (func, ...args) => {
-    const [chatId, context] = args;
-
-    if (!chatId.isLid()) {
-      return await func(...args);
-    }
-
-    const contact = ContactStore.get(chatId);
-    const existingChat = await getExisting(chatId);
-    if (!existingChat && contact) {
-      // WhatsApp Web logic: For username_contactless_search context, prefer phone number if available
-      // This prevents duplicate chats (one with LID, one with phone number)
-      const VALID_USERNAME_ORIGINS = new Set([
-        'username_change_notification',
-        'username_contactless_search',
-      ]);
-      const phoneNumberWid = ApiContact.getPhoneNumber(chatId);
-      const shouldUsePhoneNumber =
-        VALID_USERNAME_ORIGINS.has(context) && phoneNumberWid != null;
-
-      if (shouldUsePhoneNumber) {
-        // Use the phone number WID to create/find the chat
-        // Call findChat with the phone number instead of LID
-        return await findChat(phoneNumberWid, context);
-      }
-
-      // Create with LID for other contexts
-      const chatParams: any = { chatId };
-      await createChat(
-        chatParams,
-        'createChat',
-        {
-          createdLocally: true,
-          lidOriginType: 'general',
-        },
-        {}
-      );
-      return await func(...args)!;
-    }
-    return await func(...args);
-  });
-
-  wrapModuleFunction(getEnforceCurrentLid, (_func, ...args) => {
-    const [UserWid] = args;
-
-    try {
-      const LID = toUserLid ? toUserLid(UserWid) : null;
-      return LID || UserWid;
-    } catch {
-      return UserWid;
-    }
-  });
-
   wrapModuleFunction(isLidMigrated, (func, ...args) => {
     try {
       return func(...args);
     } catch {
       return false;
     }
+  });
+
+  /**
+   * Keep media encryption/upload on the main thread.
+   *
+   * When the `web_media_encrypt_upload_in_worker_enabled` AB prop is enabled,
+   * WAWebUploadManager routes `encryptAndUpload` through
+   * WAWebUploadManagerWorkerBridge, which delegates the work to a backend
+   * worker with `sendAndReceive('media', 'encryptAndUpload', ...)`. That worker
+   * never answers in an injected page, so the returned promise never settles:
+   * the message stays at `mediaStage=UPLOADING` with no HTTP request and no
+   * error, and any send queued behind it stalls too.
+   *
+   * Forcing the prop off selects WAWebUploadManagerMainThread, which uploads
+   * normally. Text sending is not affected either way.
+   */
+  wrapModuleFunction(getABPropConfigValue, (func, ...args) => {
+    return forceMediaUploadMainThread(func, ...args);
   });
 }
 

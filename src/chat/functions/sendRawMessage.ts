@@ -55,7 +55,6 @@ export async function sendRawMessage(
     ...options,
   };
 
-  // Always use assertFindChat to properly handle @lid chats and other cases
   const chat = await assertFindChat(chatId);
 
   /**
@@ -153,6 +152,6 @@ export async function sendRawMessage(
     ...(chat && {
       to: chat.id.toString(),
     }),
-    sendMsgResult: sendMsgResult!,
+    sendMsgResult,
   };
 }
