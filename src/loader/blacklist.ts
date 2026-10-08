@@ -28,11 +28,33 @@ export const META_MODULE_ID_BLACKLIST: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Module ID prefixes that must be skipped when enumerating modules.
+ *
+ * `WAWebMoment-<locale>` modules call `moment.defineLocale()` when they run,
+ * which makes that locale Moment's global locale and changes the language
+ * WhatsApp Web uses for dates (e.g. chat day separators). WhatsApp loads the
+ * locale it needs by itself, so enumerating modules must never run the others.
+ */
+export const META_MODULE_ID_PREFIX_BLACKLIST: readonly string[] = [
+  'WAWebMoment-',
+];
+
+export function isMetaModuleBlacklisted(id: string): boolean {
+  return (
+    META_MODULE_ID_BLACKLIST.has(id) ||
+    META_MODULE_ID_PREFIX_BLACKLIST.some((prefix) => id.startsWith(prefix))
+  );
+}
+
+/**
  * Property names handled by `exportModule()` whose absence is acceptable
  * (e.g., they only resolve after device is connected, or were renamed in a
  * specific WA version). When missing, no error is reported.
  */
 export const IGNORE_FAIL_MODULES: ReadonlySet<string> = new Set([
+  // Recent WhatsApp versions removed this gate from native list mutations.
+  // lists/assertListEditingAvailable preserves it only where it still exists.
+  'labelsEditingEnabled',
   'revokeStatus',
   'toggleNewsletterAdminActivityMuteStateAction',
   // stopped working in WA version ~2.3000.1034162388
@@ -62,4 +84,14 @@ export const IGNORE_FAIL_MODULES: ReadonlySet<string> = new Set([
   // comes from `ServerPropsConstants` (WAWebServerPropConstants) plus the `ServerProps`
   // fallback module. `ServerPropsModel` is only used as a TypeScript type at runtime.
   'ServerPropsModel',
+  // getUserhash was removed from WAWebContactGetters in WA ~2.3000.1043126001;
+  // src/contact/patch.ts reimplements it with WAMd5's md5 when it is missing.
+  'getUserhash',
+  // WAWebConnGetters was introduced in WA ~2.3000.1045643679; older versions
+  // still have isSMB directly on Conn.
+  'ConnGetters',
+  // WAWebConstantsDeprecated was removed from WA ~2.3000.1044096409; its values
+  // are now spread across specific modules (WAWebMediaConstants,
+  // WAWebBizCommerceConstants, ...).
+  'Constants',
 ]);

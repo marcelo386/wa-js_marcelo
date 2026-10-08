@@ -18,6 +18,7 @@ import { compare } from 'compare-versions';
 
 import * as loader from '../../loader';
 import { Wid } from '..';
+import { SANITIZED_VERSION_STR } from '../contants';
 import { exportModule } from '../exportModule';
 import { createGroup } from './createGroup';
 
@@ -64,7 +65,9 @@ loader.injectFallbackModule('sendCreateGroup', {
     ephemeral?: number,
     parentGroup?: Wid
   ) => {
-    if (compare(self.Debug.VERSION, '2.3000.1027323699', '>=')) {
+    await loader.ensureLazyModule('WAWebGroupCreateJob');
+
+    if (compare(SANITIZED_VERSION_STR, '2.3000.1027323699', '>=')) {
       return await createGroup(
         {
           title: groupName,

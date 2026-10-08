@@ -15,18 +15,31 @@
  */
 
 import { assertGetChat } from '../../assert';
+import { isBusiness } from '../../profile/functions/isBusiness';
 import { WPPError } from '../../util';
 import { LabelStore, Wid } from '../../whatsapp';
-import { getNextLabelId, labelAddAction } from '../../whatsapp/functions';
+import { labelAddAction } from '../../whatsapp/functions';
+import { assertListEditingAvailable } from './assertListEditingAvailable';
+import { ListColor, resolveColorIndex } from './resolveColorIndex';
 
 /**
  * Create a new list and optionally add chats to it.
- * Works for both personal and business accounts.
+ * Available when WhatsApp enables list editing for the account.
+ * Throws `list_editing_not_available` when the native feature is disabled.
+ *
+ * The color must be one of the WhatsApp palette entries - pass either its
+ * index or its hex code. Use {@link getColorPalette} to list them.
+ * When omitted, business accounts use the next available color and personal
+ * accounts leave the color unset in the native action.
  *
  * @example
  * ```javascript
  * const id = await WPP.lists.create('Family', ['number@c.us', 'number2@c.us']);
  * console.log(id); // '42'
+ *
+ * // with an explicit color, by index or hex code
+ * await WPP.lists.create('Work', [], 3);
+ * await WPP.lists.create('Friends', [], '#64c4ff');
  * ```
  *
  * @category Lists
@@ -34,34 +47,31 @@ import { getNextLabelId, labelAddAction } from '../../whatsapp/functions';
 export async function create(
   name: string,
   chatIds: (string | Wid)[] = [],
-  colorIndex?: number
+  color?: ListColor
 ): Promise<string> {
   if (!name?.trim()) {
     throw new WPPError('list_name_required', 'List name is required');
   }
 
-  if (
-    colorIndex !== undefined &&
-    (!Number.isInteger(colorIndex) || colorIndex < 0)
-  ) {
+  assertListEditingAvailable();
+  const chats = chatIds.map((id) => assertGetChat(id));
+
+  // Preserve the native personal-account default when no color is supplied.
+  const colorIndex =
+    color !== undefined
+      ? resolveColorIndex(color)
+      : isBusiness()
+        ? ((await LabelStore.getNextAvailableColor()) ?? 0)
+        : null;
+
+  const listId = await labelAddAction(name.trim(), colorIndex);
+  if (listId == null) {
     throw new WPPError(
-      'list_invalid_color',
-      'colorIndex must be a non-negative integer'
+      'list_create_failed',
+      'WhatsApp did not create the list'
     );
   }
-
-  const color =
-    colorIndex !== undefined
-      ? colorIndex
-      : ((await LabelStore.getNextAvailableColor()) ?? 0);
-
-  // Capture the next ID before calling labelAddAction — the action's return
-  // value is untyped (Promise<any>) and cannot be relied on as the list ID.
-  const listId = await getNextLabelId();
-  await labelAddAction(name.trim(), color);
-
-  if (chatIds.length > 0) {
-    const chats = chatIds.map((id) => assertGetChat(id));
+  if (chats.length > 0) {
     await LabelStore.addOrRemoveLabels(
       [{ id: String(listId), type: 'add' }],
       chats

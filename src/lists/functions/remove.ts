@@ -16,7 +16,8 @@
 
 import { WPPError } from '../../util';
 import { LabelStore } from '../../whatsapp';
-import { labelDeleteAction } from '../../whatsapp/functions';
+import { callLabelDeleteAction } from '../../whatsapp/functions/callLabelDeleteAction';
+import { assertListEditingAvailable } from './assertListEditingAvailable';
 
 /**
  * Delete a list by ID
@@ -29,11 +30,12 @@ import { labelDeleteAction } from '../../whatsapp/functions';
  * @category Lists
  */
 export async function remove(listId: string): Promise<void> {
+  assertListEditingAvailable();
   const label = LabelStore.get(listId);
   if (!label) {
     throw new WPPError('list_not_found', `List ${listId} not found`, {
       id: listId,
     });
   }
-  await labelDeleteAction(listId, label.name, label.colorIndex ?? 0);
+  await callLabelDeleteAction(listId, label.name, label.colorIndex ?? null);
 }

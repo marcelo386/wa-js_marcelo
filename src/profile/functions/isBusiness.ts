@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Conn } from '../../whatsapp';
+import { Conn, ConnGetters } from '../../whatsapp';
 
 /**
  * Return the current logged user is Bussiness or not
@@ -26,5 +26,5 @@ import { Conn } from '../../whatsapp';
  * @category Profile
  */
 export function isBusiness(): boolean | undefined {
-  return Conn.isSMB;
+  return ConnGetters?.getIsSMB(Conn) ?? Conn.isSMB;
 }

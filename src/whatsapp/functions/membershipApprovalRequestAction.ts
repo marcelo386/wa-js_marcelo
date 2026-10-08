@@ -16,12 +16,13 @@
 
 import { exportModule } from '../exportModule';
 import { Wid } from '../misc';
+import { GroupMutationParticipant } from './getGroupMutationParticipant';
 
 /** @whatsapp 290542
  */
 export declare function membershipApprovalRequestAction(
   groupId: Wid,
-  requestedMembersId: Wid[],
+  requestedMembersId: GroupMutationParticipant[],
   type: 'Approve' | 'Reject'
 ): Promise<
   {

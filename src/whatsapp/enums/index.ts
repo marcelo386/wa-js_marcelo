@@ -27,3 +27,4 @@ export * from './PinExpiryDurationOption';
 export * from './SendMsgResult';
 export * from './StreamInfo';
 export * from './StreamMode';
+export * from './WAWebNonJidMentionType';
