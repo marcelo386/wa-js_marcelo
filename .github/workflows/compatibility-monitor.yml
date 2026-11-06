@@ -2,7 +2,7 @@ name: WA-JS compatibility monitor
 
 on:
   schedule:
-    - cron: '15,45 * * * *'
+    - cron: '15/30 * * * *'
   workflow_dispatch:
     inputs:
       trigger:
@@ -26,9 +26,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Node
-        uses: actions/setup-node@v7.0.0
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24.21.0
+          node-version: 26.13.0
           cache: npm
 
       - name: Install dependencies

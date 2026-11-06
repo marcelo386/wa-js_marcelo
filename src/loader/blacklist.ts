@@ -23,6 +23,10 @@
 export const META_MODULE_ID_BLACKLIST: ReadonlySet<string> = new Set([
   // Throws "bx(...): Unknown file path "9550""
   'WAWebEmojiPanelContentEmojiSearchEmpty.react',
+  // WA 2.3000.1050016271: eagerly loading the attachment UI before its lazy
+  // resource causes native file selection to wait indefinitely for the preview.
+  // Leave this UI module to WhatsApp; explicit loadModule calls remain available.
+  'WAWebAttachMediaFlow.react',
   // Locale shim that fails to resolve
   'WAWebMoment-es-do',
 ]);
@@ -52,6 +56,14 @@ export function isMetaModuleBlacklisted(id: string): boolean {
  * specific WA version). When missing, no error is reported.
  */
 export const IGNORE_FAIL_MODULES: ReadonlySet<string> = new Set([
+  // Profile thumb getters are absent on older supported builds (for example
+  // WA 2.3000.1046899131). getProfilePictureUrl uses img/imgFull there.
+  'getImg',
+  'getImgFull',
+  // List reordering may be lazy or unavailable on older supported versions.
+  // setOrder resolves the native action and reports feature availability.
+  'persistLabelReorder',
+  'isLabelReorderEnabled',
   // Recent WhatsApp versions removed this gate from native list mutations.
   // lists/assertListEditingAvailable preserves it only where it still exists.
   'labelsEditingEnabled',

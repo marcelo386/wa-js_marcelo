@@ -48,6 +48,7 @@ export { markIsPaused } from './markIsPaused';
 export { markIsRead } from './markIsRead';
 export { markIsRecording } from './markIsRecording';
 export { markIsUnread } from './markIsUnread';
+export { markMessageAsRead } from './markMessageAsRead';
 export { markPlayed } from './markPlayed';
 export { mute } from './mute';
 export { openChatAt } from './openChatAt';
@@ -66,10 +67,21 @@ export {
   replyToButtonMessage,
 } from './replyToButtonMessage';
 export { requestPhoneNumber } from './requestPhoneNumber';
+export {
+  BookingMessageOptions,
+  sendBookingMessage,
+} from './sendBookingMessage';
+export {
+  CarouselCard,
+  CarouselMessageOptions,
+  sendCarouselMessage,
+} from './sendCarouselMessage';
 export { sendCatalogMessage } from './sendCatalogMessage';
 export {
   OrderItems,
   OrderMessageOptions,
+  OrderPaymentSettings,
+  PixKeyType,
   sendChargeMessage,
 } from './sendChargeMessage';
 export {

@@ -54,6 +54,12 @@ export interface LazyModuleSource {
 export const LAZY_MODULES: {
   readonly [moduleId: string]: LazyModuleSource;
 } = {
+  // WA 2.3000.1049703040-alpha: the label utility component loads the native
+  // persistence action without opening a drawer or changing any lists.
+  WAWebListsActions: {
+    components: ['WAWebSmbMarkAsXLabelAction'],
+    pattern: /Lists.*(?:Drawer|Settings|Manage)|SmbMarkAsXLabel/,
+  },
   // Verified on a cold QR page in WA 2.3000.1046899131. These components
   // register the original exports without opening UI or invoking actions.
   WAWebGenerateEventCallLink: {
@@ -61,8 +67,13 @@ export const LAZY_MODULES: {
     pattern: /EventsCreateEvent/,
   },
   WAWebGroupGetCommunityParticipantsJob: {
-    components: ['WAWebViewCommunityMembersModal.react'],
-    pattern: /ViewCommunityMembers/,
+    // WA 2.3000.1051690951 moved the job out of the member modal bundle.
+    // Loading the action registers the job without querying participants.
+    components: [
+      'WAWebQueryAndUpdateCommunityParticipantsAction',
+      'WAWebViewCommunityMembersModal.react',
+    ],
+    pattern: /QueryAndUpdateCommunityParticipants|ViewCommunityMembers/,
   },
   WAWebSetPrivacyForOneCategoryAction: {
     components: ['WAWebPrivacyVisibilityEditDrawer.react'],
@@ -121,6 +132,13 @@ export const LAZY_MODULES: {
   WAWebGroupInviteJob: {
     components: ['WAWebGroupInviteLinkDrawer.react'],
     pattern: /GroupInvite/i,
+  },
+  // Verified on WA 2.3000.1050564944: bootloading the status drawer flow
+  // registers the revoke action without opening any status. The action
+  // module is absent from sessions that never render the status viewer.
+  WAWebRevokeStatusAction: {
+    components: ['WAWebStatusDrawerFlow.react'],
+    pattern: /StatusDrawerFlow/,
   },
 };
 

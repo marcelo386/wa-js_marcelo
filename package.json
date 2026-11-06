@@ -1,6 +1,6 @@
 {
   "name": "@wppconnect/wa-js",
-  "version": "4.6.1",
+  "version": "4.7.2",
   "description": "WPPConnect/WA-JS is an open-source project with the aim of exporting functions from WhatsApp Web",
   "license": "Apache-2.0",
   "author": {
@@ -42,33 +42,34 @@
     "wa-source:clean": "shx rm -rf wa-source",
     "wa-source:format": "sh -c 'prettier --ignore-path .prettierignore --write ./wa-source/$1' --",
     "wa-source:populate": "ts-node ./src/tools/populateWaSources.ts",
-    "watch": "webpack watch --devtool inline-source-map --mode development"
+    "watch": "webpack watch --devtool inline-source-map --mode development",
+    "test:minimatch": "node --test test/minimatch-compat.test.cjs"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.3",
-    "@commitlint/config-conventional": "^21.2.3",
-    "@commitlint/prompt-cli": "^21.2.3",
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@commitlint/prompt-cli": "^21.2.4",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.64.0",
+    "@playwright/test": "^1.65.0",
     "@tony.ganchev/eslint-plugin-header": "^3.4.4",
     "@types/debug": "^4.1.13",
     "@types/node": "^16.18.126",
     "@types/node-fetch": "^2.6.13",
     "@types/parse-data-url": "^3.0.2",
     "@types/shelljs": "^0.10.0",
-    "@typescript-eslint/eslint-plugin": "^8.71.1",
-    "@typescript-eslint/parser": "^8.71.1",
-    "@wppconnect/wa-version": "^1.5.4989",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
+    "@wppconnect/wa-version": "^1.5.5005",
     "buffer": "^6.0.3",
     "compare-versions": "^6.1.1",
     "compressorjs": "^1.4.0",
     "conventional-changelog-angular": "^9.4.0",
     "conventional-changelog-cli": "^5.0.0",
     "debug": "^4.4.3",
-    "eslint": "^10.12.0",
+    "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-prettier": "^5.5.7",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "eventemitter2": "^6.4.9",
     "file-type": "~16.5.4",
@@ -76,9 +77,9 @@
     "lint-staged": "^17.6.0",
     "node-fetch": "^2.7.0",
     "parse-data-url": "^6.0.0",
-    "playwright-chromium": "^1.64.0",
-    "prettier": "^3.9.9",
-    "release-it": "^21.1.1",
+    "playwright-chromium": "^1.65.0",
+    "prettier": "^3.9.10",
+    "release-it": "^21.1.2",
     "shx": "^0.4.0",
     "terser-webpack-plugin": "^5.6.1",
     "ts-loader": "^9.6.2",
@@ -89,11 +90,23 @@
     "typedoc-plugin-missing-exports": "^4.1.4",
     "typescript": "^6.0.3",
     "typescript-debounce-decorator": "^0.0.18",
-    "typescript-eslint": "^8.71.1",
-    "webpack": "^5.111.1",
-    "webpack-cli": "^7.2.3"
+    "typescript-eslint": "^8.72.1",
+    "webpack": "^5.112.2",
+    "webpack-cli": "^7.3.1"
   },
   "engines": {
     "whatsapp-web": ">=2.3000.1038792969-alpha"
+  },
+  "overrides": {
+    "release-it": {
+      "undici@7.29.1": "7.30.1"
+    },
+    "minimatch@>=4.0.0 <11.0.1": "11.0.1",
+    "eslint-plugin-import": {
+      "minimatch": "file:../../vendor/wppconnect-minimatch-legacy-compat-1.0.2.tgz"
+    },
+    "typedoc": {
+      "minimatch": "file:../../vendor/wppconnect-minimatch-legacy-compat-1.0.2.tgz"
+    }
   }
 }

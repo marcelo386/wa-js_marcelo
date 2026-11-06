@@ -19,12 +19,35 @@ import { ChatModel, MsgModel } from '../models';
 
 /**
  * @whatsapp WAWebUpdateUnreadChatAction >= 2.3000.1031992593
+ * @deprecated Use markUnread(chat, {unread}) for versions >= 2.3000.1051327739
  */
 export declare function markUnread(
   chat: ChatModel,
-  whenAvailable: boolean,
-  showToast?: boolean
+  unread: boolean,
+  allowAction?: boolean
 ): Promise<ChatModel>;
+
+/**
+ * @whatsapp WAWebUpdateUnreadChatAction >= 2.3000.1051327739
+ */
+export declare function markUnread(
+  chat: ChatModel,
+  options: {
+    unread?: boolean;
+    allowAction?: boolean;
+    showToast?: boolean;
+  }
+): Promise<void>;
+
+/**
+ * Refresh the chat unread counter from its database metadata.
+ * @whatsapp WAWebUpdateUnreadChatAction >= 2.3000.1031992593
+ */
+export declare function updateUnreadCountMD(
+  chat: ChatModel,
+  markedAsReadCount: number,
+  updatePendingSeenCount?: boolean
+): Promise<void>;
 
 /**
  * @whatsapp 561498 >= 2.2228.4
@@ -61,6 +84,7 @@ exportModule(
   {
     markUnread: 'markUnread',
     sendSeen: 'sendSeen',
+    updateUnreadCountMD: 'updateUnreadCountMD',
   },
   (m) => m.markUnread && m.sendSeen
 );
