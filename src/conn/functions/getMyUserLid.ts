@@ -26,5 +26,8 @@ import { UserPrefs, Wid } from '../../whatsapp';
  * ```
  */
 export function getMyUserLid(): Wid {
-  return UserPrefs.getMeLidUserOrThrow();
+  // `getMeLidUserOrThrow` was removed in newer WhatsApp Web versions
+  return typeof UserPrefs.getMeLidUserOrThrow === 'function'
+    ? UserPrefs.getMeLidUserOrThrow()
+    : UserPrefs.getMaybeMeLidUser();
 }
