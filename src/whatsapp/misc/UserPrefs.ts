@@ -129,6 +129,38 @@ exportModule(exports, 'UserPrefs', (m: any) => {
     // silencioso: alguns módulos podem ser proxies/selados
   }
 
+  // WhatsApp Web moved the `*OrThrow` getters out of this module
+  // (WAWebUserPrefsMeUser keeps only the `getMaybe*` ones). Rebuild the
+  // missing ones on top of their `getMaybe*` counterparts, keeping the
+  // "throw when empty" semantics. Native functions are never overridden.
+  const orThrowMap: Record<string, string> = {
+    getMeLidUserOrThrow: 'getMaybeMeLidUser',
+    getMePnUserOrThrow: 'getMaybeMePnUser',
+    getMeDeviceLidOrThrow: 'getMaybeMeDeviceLid',
+    getMeDevicePnOrThrow: 'getMaybeMeDevicePn',
+    getMeDisplayNameOrThrow: 'getMaybeMeDisplayName',
+  };
+  for (const [name, base] of Object.entries(orThrowMap)) {
+    if (typeof m?.[name] === 'function' || typeof m?.[base] !== 'function') {
+      continue;
+    }
+    try {
+      Object.defineProperty(m, name, {
+        value: (...args: any[]) => {
+          const value = m[base](...args);
+          if (value === null || value === undefined) {
+            throw new Error(`${name}: ${base} returned no value`);
+          }
+          return value;
+        },
+        configurable: true,
+        writable: true,
+      });
+    } catch {
+      // sealed module or proxy: skip
+    }
+  }
+
   // Alguns loaders usam o valor de retorno só como "truthy".
   // Retorne 'true' ou o próprio 'm' — ambos funcionam.
   return true;
