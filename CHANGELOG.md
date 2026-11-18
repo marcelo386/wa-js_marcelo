@@ -1,3 +1,103 @@
+## <small>4.8.1 (2026-11-17)</small>
+
+### Bug Fixes
+
+* **call:** support modern rejection without mandatory enum binding (#3785) ([0e13026](https://github.com/wppconnect-team/wa-js/commit/0e13026)), closes [#3785](https://github.com/wppconnect-team/wa-js/issues/3785)
+* install message key serialization before incoming events ([e457f76](https://github.com/wppconnect-team/wa-js/commit/e457f76))
+* resolve About status and modern text status backends lazily ([eca41f6](https://github.com/wppconnect-team/wa-js/commit/eca41f6))
+
+### Build System
+
+* **deps-dev:** align the validated Playwright packages ([87569fa](https://github.com/wppconnect-team/wa-js/commit/87569fa))
+* **deps-dev:** update dependency @wppconnect/wa-version to ^1.5.5212 (#3783) ([d1a11da](https://github.com/wppconnect-team/wa-js/commit/d1a11da)), closes [#3783](https://github.com/wppconnect-team/wa-js/issues/3783)
+* **deps-dev:** update dependency @wppconnect/wa-version to ^1.5.5213 (#3784) ([93db471](https://github.com/wppconnect-team/wa-js/commit/93db471)), closes [#3784](https://github.com/wppconnect-team/wa-js/issues/3784)
+* **deps-dev:** update dependency @wppconnect/wa-version to ^1.5.5216 (#3786) ([43e4e91](https://github.com/wppconnect-team/wa-js/commit/43e4e91)), closes [#3786](https://github.com/wppconnect-team/wa-js/issues/3786)
+* **deps-dev:** update dependency lint-staged to ^17.6.1 (#3787) ([626a979](https://github.com/wppconnect-team/wa-js/commit/626a979)), closes [#3787](https://github.com/wppconnect-team/wa-js/issues/3787)
+* **deps-dev:** update the validated ESLint development graph ([a71d4d9](https://github.com/wppconnect-team/wa-js/commit/a71d4d9))
+* **deps-dev:** update typescript-eslint monorepo to ^8.73.0 (#3789) ([649713f](https://github.com/wppconnect-team/wa-js/commit/649713f)), closes [#3789](https://github.com/wppconnect-team/wa-js/issues/3789)
+* **deps:** update the validated WhatsApp version catalogue ([2f28882](https://github.com/wppconnect-team/wa-js/commit/2f28882))
+
+### Continuous Integration
+
+* **release:** release without PERSONAL_TOKEN (#3790) ([bbea01d](https://github.com/wppconnect-team/wa-js/commit/bbea01d)), closes [#3790](https://github.com/wppconnect-team/wa-js/issues/3790)
+
+### Chores
+
+* **deps:** refresh development lockfile (#3788) ([6b8a5ef](https://github.com/wppconnect-team/wa-js/commit/6b8a5ef)), closes [#3788](https://github.com/wppconnect-team/wa-js/issues/3788)
+
+## 4.8.0 (2026-11-13)
+
+### Features
+
+* **call:** add native controls and scoped call audio ([7308cf1](https://github.com/wppconnect-team/wa-js/commit/7308cf1))
+
+### Bug Fixes
+
+* **chat:** resolve newsletters from their own store (#3767) ([4595d9e](https://github.com/wppconnect-team/wa-js/commit/4595d9e)), closes [#3767](https://github.com/wppconnect-team/wa-js/issues/3767)
+* **chat:** respect native newsletter action lifecycle (#3762) ([5f134cb](https://github.com/wppconnect-team/wa-js/commit/5f134cb)), closes [#3762](https://github.com/wppconnect-team/wa-js/issues/3762)
+* **chat:** reuse the MsgStore model when reading messages ([d8dd1b3](https://github.com/wppconnect-team/wa-js/commit/d8dd1b3))
+* **deps:** prevent glob amplification and retain import lint rules (#3764) ([9065591](https://github.com/wppconnect-team/wa-js/commit/9065591)), closes [#3764](https://github.com/wppconnect-team/wa-js/issues/3764)
+* **deps:** prevent release tooling response-decoding crash (#3754) ([dd533b7](https://github.com/wppconnect-team/wa-js/commit/dd533b7)), closes [#3754](https://github.com/wppconnect-team/wa-js/issues/3754)
+* **loader:** recover community participants on current WhatsApp (#3751) ([13fec08](https://github.com/wppconnect-team/wa-js/commit/13fec08)), closes [#3751](https://github.com/wppconnect-team/wa-js/issues/3751)
+* tolerate removed LID getter while preserving deprecated APIs ([2d729a0](https://github.com/wppconnect-team/wa-js/commit/2d729a0)), closes [#2926](https://github.com/wppconnect-team/wa-js/issues/2926)
+
+### Documentation
+
+* adopt official WPPConnect branding and API favicon (#3758) ([1276b2f](https://github.com/wppconnect-team/wa-js/commit/1276b2f)), closes [#3758](https://github.com/wppconnect-team/wa-js/issues/3758)
+* publish canonical API URLs and preserve renamed references (#3775) ([3b00cce](https://github.com/wppconnect-team/wa-js/commit/3b00cce)), closes [#3775](https://github.com/wppconnect-team/wa-js/issues/3775)
+* refresh API reference visual design (#3766) ([6a617d4](https://github.com/wppconnect-team/wa-js/commit/6a617d4)), closes [#3766](https://github.com/wppconnect-team/wa-js/issues/3766)
+* standardize bilingual READMEs and support guidance ([2479f13](https://github.com/wppconnect-team/wa-js/commit/2479f13))
+* update official WPPConnect logo and API favicon (#3765) ([e1bd9e2](https://github.com/wppconnect-team/wa-js/commit/e1bd9e2)), closes [#3765](https://github.com/wppconnect-team/wa-js/issues/3765)
+
+### Build System
+
+* **deps-dev:** bump fast-uri from 3.1.8 to 3.1.9 ([3ee6227](https://github.com/wppconnect-team/wa-js/commit/3ee6227))
+* **deps-dev:** require prettier ^3.10.1 ([d2d25ff](https://github.com/wppconnect-team/wa-js/commit/d2d25ff))
+* **deps-dev:** update dependency eslint to ^10.14.0 (#3760) ([c97f9e4](https://github.com/wppconnect-team/wa-js/commit/c97f9e4)), closes [#3760](https://github.com/wppconnect-team/wa-js/issues/3760)
+* **deps-dev:** update dependency prettier to ^3.10.0 ([69b8db2](https://github.com/wppconnect-team/wa-js/commit/69b8db2))
+* **deps-dev:** update dependency release-it to ^21.1.2 (#3759) ([1852440](https://github.com/wppconnect-team/wa-js/commit/1852440)), closes [#3759](https://github.com/wppconnect-team/wa-js/issues/3759)
+* **deps-dev:** update dependency webpack to ^5.112.2 (#3749) ([59d6356](https://github.com/wppconnect-team/wa-js/commit/59d6356)), closes [#3749](https://github.com/wppconnect-team/wa-js/issues/3749)
+* **deps-dev:** update dependency webpack-cli to ^7.3.1 (#3761) ([96cecad](https://github.com/wppconnect-team/wa-js/commit/96cecad)), closes [#3761](https://github.com/wppconnect-team/wa-js/issues/3761)
+* **deps-dev:** update playwright monorepo to ^1.65.0 (#3770) ([f8c27c2](https://github.com/wppconnect-team/wa-js/commit/f8c27c2)), closes [#3770](https://github.com/wppconnect-team/wa-js/issues/3770)
+* **deps-dev:** update typescript-eslint monorepo to ^8.72.1 (#3753) ([fe73b0a](https://github.com/wppconnect-team/wa-js/commit/fe73b0a)), closes [#3753](https://github.com/wppconnect-team/wa-js/issues/3753)
+* **deps-dev:** update typescript-eslint monorepo to ^8.72.2 (#3771) ([4e0542c](https://github.com/wppconnect-team/wa-js/commit/4e0542c)), closes [#3771](https://github.com/wppconnect-team/wa-js/issues/3771)
+* **deps:** update node.js to v24.22.2 (#3756) ([a50ccf1](https://github.com/wppconnect-team/wa-js/commit/a50ccf1)), closes [#3756](https://github.com/wppconnect-team/wa-js/issues/3756)
+* **deps:** update node.js to v26 (#3763) ([1b7c75e](https://github.com/wppconnect-team/wa-js/commit/1b7c75e)), closes [#3763](https://github.com/wppconnect-team/wa-js/issues/3763)
+* **deps:** update node.js to v26.13.1 ([cdf4cb0](https://github.com/wppconnect-team/wa-js/commit/cdf4cb0))
+
+### Continuous Integration
+
+* **deps:** update dependency node to v26 (#3755) ([5c5b6bb](https://github.com/wppconnect-team/wa-js/commit/5c5b6bb)), closes [#3755](https://github.com/wppconnect-team/wa-js/issues/3755)
+
+### Chores
+
+* **deps:** update prettier to v3.10.1 ([67f95b0](https://github.com/wppconnect-team/wa-js/commit/67f95b0))
+
+
+### BREAKING CHANGE
+
+* WPP.conn.getMigrationState() no longer returns
+isLidMigrated, and WPP.whatsapp.functions.isLidMigrated and
+WPP.whatsapp.Lid1X1MigrationUtils.isLidMigrated/setIsLidMigrated were
+removed. WhatsApp Web >= 2.3000.1054281195 treats every account as
+LID-migrated.
+
+* build(deps-dev): update dependency @wppconnect/wa-version to ^1.5.5200
+
+* fix(loader): load lazy modules exposed only as JSResource
+
+WhatsApp Web 2.3000.1054241206 no longer lists
+WAWebQueryAndUpdateCommunityParticipantsAction as a Bootloader component:
+the member modal bundle now loads it on interaction through
+JSResourceForInteraction. ensureLazyModule skipped it, so
+WAWebGroupGetCommunityParticipantsJob was never registered and
+getCommunityParticipants stayed undefined.
+
+Lazy module sources can now list JSResource names, tried after the
+components when the module is still missing.
+
+* fix: preserve deprecated LID migration APIs and resource cleanup
+
 ## <small>4.7.2 (2026-10-23)</small>
 
 ### Bug Fixes
